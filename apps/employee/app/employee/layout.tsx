@@ -30,7 +30,7 @@ export default async function AuditLayout({
             <AppSidebar variant="inset" />
             <SidebarInset>
                 <SiteHeader />
-                <div className="flex flex-1 flex-col">
+                <div className="max-w-2xl  flex flex-1 flex-col">
                     <div className="@container/main flex flex-1 flex-col gap-2">
                         {children}
                     </div>
