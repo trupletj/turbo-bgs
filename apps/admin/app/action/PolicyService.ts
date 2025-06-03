@@ -1,5 +1,5 @@
 import { prisma } from "@repo/database";
-import { Clause, Policy } from "../../app/types";
+import { Clause, Policy } from "../types";
 
 export const createPolicy = async (data: Omit<Policy, "id" | "isDeleted">) => {
   try {

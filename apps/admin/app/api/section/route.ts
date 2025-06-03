@@ -6,7 +6,7 @@ import {
   updateSection,
   deleteSection,
   restoreSection,
-} from "@/lib/services/SectionService";
+} from "@/app/action/SectionService";
 
 export async function GET(request: Request) {
   try {

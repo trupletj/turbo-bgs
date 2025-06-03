@@ -4,9 +4,7 @@ import { useState, useEffect } from "react";
 import { use } from "react";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { toast } from "react-toastify";
 import Link from "next/link";
-import PolicyForm from "@/components/PolicyForm";
 
 interface Policy {
   id: string;
@@ -38,11 +36,9 @@ interface PolicyDetailPageProps {
 }
 
 export default function PolicyDetailPage({ params }: PolicyDetailPageProps) {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
   const resolvedParams = use(params);
   const [policy, setPolicy] = useState<Policy | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
     fetchPolicy();
@@ -52,7 +48,7 @@ export default function PolicyDetailPage({ params }: PolicyDetailPageProps) {
     setIsLoading(true);
     try {
       console.log("Fetching policy details:", { policyId: resolvedParams.id });
-      const response = await fetch(`/api/policy/?id=${resolvedParams.id}`, {
+      const response = await fetch(`/api/policy?id=${resolvedParams.id}`, {
         cache: "no-store",
       });
       if (!response.ok) {
@@ -69,14 +65,14 @@ export default function PolicyDetailPage({ params }: PolicyDetailPageProps) {
       setPolicy(data);
     } catch (error) {
       console.error("Failed to fetch policy:", error);
-      notFound();
+      throw notFound();
     } finally {
       setIsLoading(false);
     }
   };
 
-  const renderClauses = (clauses: Clause[], level = 1) => (
-    <div className={`ml-${level * 4}`}>
+  const renderClauses = (clauses: Clause[], level = 0) => (
+    <div className={`ml-${level === 0 ? "1" : "0"}`}>
       {clauses.map((clause) => (
         <div key={clause.id} className="mt-2">
           <span className="font-bold">{clause.referenceNumber}.</span>{" "}
@@ -94,44 +90,7 @@ export default function PolicyDetailPage({ params }: PolicyDetailPageProps) {
   }
 
   if (!policy) {
-    return notFound();
-  }
-
-  if (editMode) {
-    return (
-      <PolicyForm
-        initialData={{
-          id: policy.id,
-          name: policy.name || "",
-          referenceCode: policy.referenceCode || "",
-          approvedDate: policy.approvedDate
-            ? new Date(policy.approvedDate)
-            : null,
-          sections: (policy.section ?? []).map((s) => ({
-            id: s.id,
-            referenceNumber: s.referenceNumber,
-            text: s.text || "",
-            clauses: (s.clause ?? []).map((c) => ({
-              id: c.id,
-              referenceNumber: c.referenceNumber,
-              text: c.text,
-              parentId: c.parentId,
-              children: c.children ?? [],
-            })),
-          })),
-        }}
-        onSuccess={() => {
-          setEditMode(false);
-          fetchPolicy();
-          toast.success("Журам амжилттай засварлагдлаа");
-          console.log("Policy updated:", { policyId: policy.id });
-        }}
-        onCancel={() => {
-          setEditMode(false);
-          console.log("Edit mode cancelled:", { policyId: policy.id });
-        }}
-      />
-    );
+    throw notFound();
   }
 
   return (
@@ -144,14 +103,9 @@ export default function PolicyDetailPage({ params }: PolicyDetailPageProps) {
               Буцах
             </Button>
           </Link>
-          <Button
-            onClick={() => {
-              setEditMode(true);
-              console.log("Edit mode enabled:", { policyId: policy.id });
-            }}
-          >
-            Засварлах
-          </Button>
+          <Link href={`/policy/${policy.id}/edit`}>
+            <Button>Засварлах</Button>
+          </Link>
         </div>
       </div>
       <p className="font-semibold">Код: {policy.referenceCode}</p>
@@ -172,7 +126,6 @@ export default function PolicyDetailPage({ params }: PolicyDetailPageProps) {
                 {section.referenceNumber}. {section.text || "Тайлбар байхгүй"}
               </h3>
               <div className="ml-6 mt-2">
-                {/* Заалтууд</h4> */}
                 {(section.clause ?? []).length === 0 ? (
                   <p className="text-gray-500 mt-2">Заалт байхгүй</p>
                 ) : (

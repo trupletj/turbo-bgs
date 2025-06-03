@@ -1,5 +1,5 @@
 import { prisma } from "@repo/database";
-import { Section } from "../../app/types";
+import { Section } from "../types";
 
 export const createSection = async (
   data: Omit<Section, "id" | "isDeleted">

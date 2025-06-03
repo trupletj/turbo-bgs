@@ -6,7 +6,7 @@ import {
   updatePolicy,
   deletePolicy,
   restorePolicy,
-} from "@/lib/services/PolicyService";
+} from "@/app/action/PolicyService";
 
 export async function GET(request: Request) {
   try {
