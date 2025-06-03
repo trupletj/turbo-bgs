@@ -61,11 +61,11 @@ const data = {
       items: [
         {
           title: "Нийт",
-          url: "/policy/all",
+          url: "/dashboard/policy",
         },
         {
           title: "Шинэ журам нэмэх",
-          url: "/new-policy",
+          url: "/policy/new",
         },
         {
           title: "Ангилал",

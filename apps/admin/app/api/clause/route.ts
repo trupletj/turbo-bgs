@@ -6,7 +6,7 @@ import {
   updateClause,
   deleteClause,
   restoreClause,
-} from "@/lib/services/ClauseService";
+} from "@/app/action/ClauseService";
 
 export async function GET(request: Request) {
   try {

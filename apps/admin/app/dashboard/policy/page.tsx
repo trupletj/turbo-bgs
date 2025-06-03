@@ -1,14 +1,11 @@
-import React from 'react'
-import { DataTable } from '@/components/data-table'
-import data from "./data.json"
+import PolicyList from "@/components/PolicyList";
 
-const PolicyPage = () => {
-    return (
-
-        <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-            <DataTable data={data} />
-        </div>
-    )
+export default async function Page() {
+  return (
+    <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+      <div className="px-4 lg:px-6">
+        <PolicyList />
+      </div>
+    </div>
+  );
 }
-
-export default PolicyPage

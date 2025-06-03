@@ -46,7 +46,6 @@ export default function PolicyForm({
   onSuccess,
   onCancel,
 }: PolicyFormProps) {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const [policyData, setPolicyData] = useState<PolicyFormData>({
     name: initialData?.name || "",
     referenceCode: initialData?.referenceCode || "",
@@ -81,12 +80,9 @@ export default function PolicyForm({
         const section = sections[sectionIndex];
         console.log("Deleting section:", { sectionId: section.id });
         if (!section.id.startsWith("temp-")) {
-          const response = await fetch(
-            `${API_URL}/api/section?id=${section.id}`,
-            {
-              method: "DELETE",
-            }
-          );
+          const response = await fetch(`/api/section?id=${section.id}`, {
+            method: "DELETE",
+          });
           if (!response.ok) {
             const error = await response.json();
             throw new Error(error.error || "Бүлэг устгахад алдаа гарлаа");
@@ -117,7 +113,7 @@ export default function PolicyForm({
         setIsProcessing(false);
       }
     },
-    [sections, isProcessing, API_URL]
+    [sections, isProcessing]
   );
 
   const addClause = useCallback(
@@ -281,9 +277,8 @@ export default function PolicyForm({
     try {
       const method = initialData ? "PUT" : "POST";
       const url = initialData
-        ? `${API_URL}/api/policy?id=${initialData.id}`
-        : `${API_URL}/api/policy`;
-
+        ? `/api/policy?id=${initialData.id}`
+        : `/api/policy`;
       console.log("Submitting policy:", {
         id: initialData?.id,
         name: policyData.name,
@@ -329,7 +324,7 @@ export default function PolicyForm({
           console.log("Deleting section and its clauses:", {
             sectionId: deletedSection.id,
           });
-          await fetch(`${API_URL}/api/section?id=${deletedSection.id}`, {
+          await fetch(`/api/section?id=${deletedSection.id}`, {
             method: "DELETE",
           });
         }
@@ -338,7 +333,7 @@ export default function PolicyForm({
       for (const { clauseId } of deletedClauses) {
         if (!clauseId.startsWith("temp-")) {
           console.log("Deleting clause:", { clauseId });
-          await fetch(`${API_URL}/api/clause?id=${clauseId}`, {
+          await fetch(`/api/clause?id=${clauseId}`, {
             method: "DELETE",
           });
         }
@@ -348,8 +343,8 @@ export default function PolicyForm({
         const sectionMethod = section.id.startsWith("temp-") ? "POST" : "PUT";
         const sectionUrl =
           sectionMethod === "POST"
-            ? `${API_URL}/api/section`
-            : `${API_URL}/api/section?id=${section.id}`;
+            ? `/api/section`
+            : `/api/section?id=${section.id}`;
 
         console.log("Submitting section:", {
           sectionId: section.id,
@@ -382,8 +377,8 @@ export default function PolicyForm({
             const clauseMethod = clause.id.startsWith("temp-") ? "POST" : "PUT";
             const clauseUrl =
               clauseMethod === "POST"
-                ? `${API_URL}/api/clause`
-                : `${API_URL}/api/clause?id=${clause.id}`;
+                ? `/api/clause`
+                : `/api/clause?id=${clause.id}`;
 
             console.log("Submitting clause:", {
               clauseId: clause.id,
