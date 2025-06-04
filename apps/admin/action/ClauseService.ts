@@ -1,4 +1,4 @@
-import { Clause } from "../types";
+import { Clause } from "@/types";
 import { prisma } from "@repo/database";
 
 export const createClause = async (
