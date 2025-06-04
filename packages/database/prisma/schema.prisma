@@ -65,15 +65,15 @@ model clause {
   parent           clause?    @relation("ClauseToClause", fields: [parentId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   children         clause[]   @relation("ClauseToClause") // өөрийнхөө олон хүүхдийг заана
   section          section?   @relation(fields: [sectionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  clausePosition   clausePosition[]
+  clause_position   clause_position[]
 }
 
-model clausePosition {
+model clause_position {
   id         String              @id @default(uuid()) @db.Uuid
   clauseId   String             @db.Uuid
   positionId String             @db.Uuid
   isDeleted  Boolean             @default(false)
-  type       typeclauseposition?
+  type       type_clause_position?
   clause     clause?             @relation(fields: [clauseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   position   position?           @relation(fields: [positionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   rating     rating[]
@@ -103,7 +103,7 @@ model division {
   isDeleted        Boolean          @default(false)
   department   department? @relation(fields: [departmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   position     position[]
-  bted_id Int?
+  bteg_id Int?
 }
 
 model policy {
@@ -121,20 +121,22 @@ model position {
   clauseId       String?          @db.Uuid
   divisionId     String          @db.Uuid
   isDeleted        Boolean          @default(false)
-  clausePosition clausePosition[]
+  clause_position clause_position[]
   User       User[]
   division       division?        @relation(fields: [divisionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  bted_id Int?
+  bteg_id Int?
 }
 
 model rating {
   id               String          @id @default(uuid()) @db.Uuid
   score            Int
   description      String?
-  scoredDate       DateTime       @db.Date
-  clausePositionId String         @db.Uuid
+  scored_date       DateTime       @db.Date
+  clause_position_id String         @db.Uuid
   isDeleted        Boolean          @default(false)
-  clausePosition   clausePosition? @relation(fields: [clausePositionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  rating_session_id String   @db.Uuid
+  clause_position   clause_position? @relation(fields: [clause_position_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  rating_session rating_session? @relation(fields: [rating_session_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model section {
@@ -147,11 +149,24 @@ model section {
   policy           policy?  @relation(fields: [policyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
-enum typeclauseposition {
-  Implementation
-  Monitoring
-  Verification
-  Deployment
+model rating_session {
+  id String @id @default(uuid()) @db.Uuid
+  startDate DateTime @db.Date
+  endDate DateTime @db.Date
+  name String?
+  rating rating[]
+}
+
+enum rating_process {
+  ACTIVE
+  END  
+}
+
+enum type_clause_position {
+  IMPLEMENTATION
+  MONITORING
+  VERIFICATION
+  DEPLOYMENT
 }
 
 enum Role {

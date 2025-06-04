@@ -42,7 +42,7 @@ export const getClause = async (id: string) => {
       where: { id, isDeleted: false },
       include: {
         section: { where: { isDeleted: false } },
-        clausePosition: {
+        clause_position: {
           include: { position: { where: { isDeleted: false } } },
         },
       },
@@ -61,7 +61,7 @@ export const getAllClauses = async (sectionId?: string) => {
     return await prisma.clause.findMany({
       where: { sectionId: sectionId || undefined, isDeleted: false },
       include: {
-        clausePosition: {
+        clause_position: {
           include: { position: { where: { isDeleted: false } } },
         },
       },
