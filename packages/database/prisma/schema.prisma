@@ -1,11 +1,54 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma/client"
+  provider        = "prisma-client-js"
+  output          = "../generated/prisma/client"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["bteg_data", "public"]
+}
+
+model User {
+  id              String    @id(map: "User_pkey1") @db.Uuid
+  bteg_id         String?
+  email           String?
+  phone           String?
+  idcard_number   String?
+  is_active       Boolean?
+  address         String?
+  register_number String?
+  gazar_id        String?
+  alba_id         String?
+  heltes_id       String?
+  position_name   String?
+  nice_name       String?
+  created_at      DateTime? @db.Timestamp(6)
+  updated_at      DateTime? @db.Timestamp(6)
+  first_name      String?
+  last_name       String?
+  organization_id String?
+
+  @@schema("bteg_data")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model departments {
+  id              String    @id @db.Uuid
+  bteg_id         String?
+  name            String?
+  description     String?
+  is_new          Boolean?
+  organization_id String?
+  gazar_id        String?
+  darga_id        String?
+  is_active       Boolean?
+  sub_title       String?
+  created_at      DateTime? @db.Timestamp(6)
+  updated_at      DateTime? @db.Timestamp(6)
+
+  @@schema("bteg_data")
 }
 
 model Session {
@@ -13,63 +56,27 @@ model Session {
   session_token String   @unique
   expires       DateTime
   user_id       BigInt?
-  User          User?    @relation(fields: [user_id], references: [id])
-}
 
-model User {
-  name                    String
-  email                   String
-  idcard_number           String    @unique
-  bteg_id                 Int       @unique
-  phone                   String    @db.VarChar(10)
-  org_slug                String?   @db.VarChar(10)
-  organization_id         Int       @db.SmallInt
-  department_name         String?   @db.VarChar(250)
-  heltes_name             String?   @db.VarChar(250)
-  position_name           String?   @db.VarChar(400)
-  autobus_direction       String?   @db.VarChar(400)
-  eelj_date               String?   @db.VarChar(50)
-  eelj_id                 Int?
-  admin_eelj              Int?
-  approved_admin          Int?
-  eelj_reason             String?   @db.VarChar(400)
-  sms_code                String?   @db.VarChar(20)
-  sms_active              DateTime?
-  createdAt               DateTime  @default(now())
-  approved_zam_tsag       Int       @default(0) @db.SmallInt
-  is_done                 Boolean   @default(false)
-  zam_tsag                Int       @default(0) @db.SmallInt
-  is_should_work          Boolean   @default(false)
-  role                    Role      @default(USER)
-  register_number         String    @unique @default("")
-  group_name              String?   @db.VarChar(250)
-  heseg_name              String?   @db.VarChar(250)
-  updatedAt               DateTime  @default(now())
-  id                      BigInt    @id @default(autoincrement())
-  first_name              String?   @db.VarChar(255)
-  last_name               String?   @db.VarChar(255)
-  ajil_mergejliin_angilal String?   @db.VarChar(255)
-  out_date                DateTime? @db.Date
-  positionId              String?    @db.Uuid
-  Session                 Session[]
-  position                position?  @relation(fields: [positionId], references: [id])
+  @@schema("public")
 }
 
 model clause {
-  id              String            @id @default(uuid()) @db.Uuid
+  id              String            @id @db.Uuid
   text            String
   referenceNumber String
   sectionId       String            @db.Uuid
   parentId        String?           @db.Uuid
   isDeleted       Boolean           @default(false)
-  parent          clause?           @relation("ClauseToClause", fields: [parentId], references: [id], onUpdate: NoAction)
-  children        clause[]          @relation("ClauseToClause")
+  clause          clause?           @relation("clauseToclause", fields: [parentId], references: [id], onUpdate: NoAction)
+  other_clause    clause[]          @relation("clauseToclause")
   section         section           @relation(fields: [sectionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   clause_position clause_position[]
+
+  @@schema("public")
 }
 
 model clause_position {
-  id         String                @id @default(uuid()) @db.Uuid
+  id         String                @id @db.Uuid
   clauseId   String                @db.Uuid
   positionId String                @db.Uuid
   isDeleted  Boolean               @default(false)
@@ -77,57 +84,68 @@ model clause_position {
   clause     clause                @relation(fields: [clauseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   position   position              @relation(fields: [positionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   rating     rating[]
+
+  @@schema("public")
 }
 
 model company {
-  id                 String       @id @default(uuid()) @db.Uuid
+  id                 String       @id @db.Uuid
   name               String?      @db.VarChar(255)
   registrationNumber String?      @db.VarChar(255)
   isDeleted          Boolean      @default(false)
   department         department[]
+
+  @@schema("public")
 }
 
 model department {
-  id        String     @id @default(uuid()) @db.Uuid
+  id        String     @id @db.Uuid
   name      String?    @db.VarChar(255)
   companyId String?    @db.Uuid
   isDeleted Boolean    @default(false)
   company   company?   @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   division  division[]
+
+  @@schema("public")
 }
 
 model division {
-  id           String      @id @default(uuid()) @db.Uuid
+  id           String      @id @db.Uuid
   name         String?     @db.VarChar(255)
   departmentId String?     @db.Uuid
   isDeleted    Boolean     @default(false)
   bteg_id      Int?
   department   department? @relation(fields: [departmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   position     position[]
+
+  @@schema("public")
 }
 
 model policy {
-  id            String    @id @default(uuid()) @db.Uuid
+  id            String    @id @db.Uuid
   name          String?   @db.VarChar(255)
   approvedDate  DateTime? @db.Date
   referenceCode String    @unique @db.VarChar(255)
   isDeleted     Boolean   @default(false)
   section       section[]
+
+  @@schema("public")
 }
 
 model position {
-  id              String            @id @default(uuid()) @db.Uuid
+  id              String            @id @db.Uuid
   name            String?           @db.VarChar(255)
   divisionId      String            @db.Uuid
   isDeleted       Boolean           @default(false)
   bteg_id         Int?
-  User            User[]
   clause_position clause_position[]
   division        division          @relation(fields: [divisionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("public")
 }
 
 model rating {
-  id                 String          @id @default(uuid()) @db.Uuid
+  id                 String          @id @db.Uuid
   score              Int
   description        String?
   isDeleted          Boolean         @default(false)
@@ -136,152 +154,31 @@ model rating {
   scored_date        DateTime        @db.Date
   clause_position    clause_position @relation(fields: [clause_position_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   rating_session     rating_session  @relation(fields: [rating_session_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+model rating_session {
+  id             String         @id @db.Uuid
+  startDate      DateTime       @db.Date
+  endDate        DateTime       @db.Date
+  name           String?
+  rating_process rating_process
+  rating         rating[]
+
+  @@schema("public")
 }
 
 model section {
-  id              String   @id @default(uuid()) @db.Uuid
+  id              String   @id @db.Uuid
   policyId        String?  @db.Uuid
   text            String
   referenceNumber String?  @db.VarChar(255)
   isDeleted       Boolean  @default(false)
   clause          clause[]
   policy          policy?  @relation(fields: [policyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
 
-model rating_session {
-  id             String         @id @default(uuid()) @db.Uuid
-  startDate      DateTime       @db.Date
-  endDate        DateTime       @db.Date
-  name           String?
-  rating_process rating_process
-  rating         rating[]
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model my_first_dbt_model {
-  id Int?
-
-  @@ignore
-}
-
-model sf_guard_user {
-  autobus_direction_id    BigInt?
-  next_eelj_soliltoo      DateTime? @db.Timestamp(6)
-  mobile_confirmation     String?
-  created_at              DateTime? @db.Timestamp(6)
-  heseg_name              String?
-  confirmation_token      String?
-  description             String?
-  profile_image           String?
-  zergiin_angilal         BigInt?
-  heseg_id                BigInt?
-  sf_guard_group_id       BigInt?
-  heseg                   BigInt?
-  fb_user_id              BigInt?
-  tsalin_zereg_id         BigInt?
-  emdd                    String?
-  family_name             String?
-  register_number         String?
-  job_type_id             BigInt?
-  out_category_id         BigInt?
-  master_group            BigInt?
-  locked                  Boolean?
-  updated_at              DateTime? @db.Timestamp(6)
-  alba_id                 BigInt?
-  id                      BigInt    @id
-  current_worked_days     BigInt?
-  status_id               BigInt?
-  algorithm               String?
-  is_active               Boolean?
-  is_empty_position       Boolean?
-  salt                    String?
-  sector_id               BigInt?
-  command_number          String?
-  is_group                Boolean?
-  heltes_id               BigInt?
-  ajliin_gazriin_bairshil BigInt?
-  credentials_expire_at   DateTime? @db.Timestamp(6)
-  last_login              DateTime? @db.Timestamp(6)
-  nd_country_year         BigInt?
-  department_id           BigInt?
-  twitter_user_id         BigInt?
-  out_category_type_id    BigInt?
-  out_text                String?
-  kart_dugaar             String?
-  heltes_name             String?
-  last_direction_id       BigInt?
-  d_turul_code            BigInt?
-  is_confirm              Boolean?
-  roles                   String?
-  dans_dugaar             String?
-  birthday                DateTime? @db.Timestamp(6)
-  geree_ehelsen           DateTime? @db.Timestamp(6)
-  organization_id         BigInt?
-  expires_at              DateTime? @db.Timestamp(6)
-  first_name              String?
-  phone                   String?
-  is_tetgever             Boolean?
-  position_id             BigInt?
-  updated_user_id         BigInt?
-  password                String?
-  address                 String?
-  sanhuu_dugaar           String?
-  old_position_user       BigInt?
-  work_time_id            BigInt?
-  nas                     BigInt?
-  expired                 Boolean?
-  username                String?
-  zereg                   String?
-  work_type_id            BigInt?
-  ndd                     String?
-  is_ok                   Boolean?
-  nice_name               String?
-  out_date                DateTime? @db.Timestamp(6)
-  last_name               String?
-  ajillasan_jil           String?
-  in_date                 DateTime? @db.Timestamp(6)
-  last_autobus_id         BigInt?
-  gazar_id                BigInt?
-  is_jiremsnii_amralt     Boolean?
-  group_reason            String?
-  department_name         String?
-  credentials_expired     Boolean?
-  email_address           String?
-  is_super_admin          Boolean?
-  idcard_number           String?
-  phone2                  String?
-  ajillasan_nuhtsul       String?
-  password_requested_at   DateTime? @db.Timestamp(6)
-  current_not_work_days   BigInt?
-  position_name           String?
-  ajil_mergejliin_angilal String?
-  alban_tushaal_code      BigInt?
-  huis                    String?
-  created_user_id         BigInt?
-  tsag_burtgeliin_tailbar String?
-  eelj_soliltsoo_id       BigInt?
-  geree_duusah            DateTime? @db.Timestamp(6)
-  alban_tushaal_id        BigInt?
-  code                    String?
-  sdc_extracted_at        DateTime? @map("_sdc_extracted_at") @db.Timestamp(6)
-  sdc_received_at         DateTime? @map("_sdc_received_at") @db.Timestamp(6)
-  sdc_batched_at          DateTime? @map("_sdc_batched_at") @db.Timestamp(6)
-  sdc_deleted_at          DateTime? @map("_sdc_deleted_at") @db.Timestamp(6)
-  sdc_sequence            BigInt?   @map("_sdc_sequence")
-  sdc_table_version       BigInt?   @map("_sdc_table_version")
-  sdc_sync_started_at     BigInt?   @map("_sdc_sync_started_at")
-}
-
-enum rating_process {
-  ACTIVE
-  END
-}
-
-enum type_clause_position {
-  IMPLEMENTATION
-  MONITORING
-  VERIFICATION
-  DEPLOYMENT
+  @@schema("public")
 }
 
 enum Role {
@@ -290,4 +187,22 @@ enum Role {
   ADMIN
   DARGA
   UB
+
+  @@schema("public")
+}
+
+enum rating_process {
+  ACTIVE
+  END
+
+  @@schema("public")
+}
+
+enum type_clause_position {
+  IMPLEMENTATION
+  MONITORING
+  VERIFICATION
+  DEPLOYMENT
+
+  @@schema("public")
 }
