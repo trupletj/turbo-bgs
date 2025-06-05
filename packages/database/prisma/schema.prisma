@@ -11,7 +11,7 @@ datasource db {
 }
 
 model User {
-  id              String    @id(map: "User_pkey1") @db.Uuid
+  id              String    @id @db.Uuid
   bteg_id         String?
   email           String?
   phone           String?
@@ -33,8 +33,39 @@ model User {
   @@schema("bteg_data")
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model departments {
+model alba {
+  id              String    @id @db.Uuid
+  bteg_id         String?
+  name            String?
+  description     String?
+  is_new          Boolean?
+  is_active       Boolean?
+  organization_id String?
+  gazar_id        String?
+  heltes_id       String?
+  darga_id        String?
+  sub_title       String?
+  created_at      DateTime? @db.Timestamp(6)
+  updated_at      DateTime? @db.Timestamp(6)
+
+  @@schema("bteg_data")
+}
+
+model gazar {
+  id              String    @id @db.Uuid
+  bteg_id         String?
+  name            String?
+  description     String?
+  is_active       Boolean?
+  darga_id        String?
+  organization_id String?
+  created_at      DateTime? @db.Timestamp(6)
+  updated_at      DateTime? @db.Timestamp(6)
+
+  @@schema("bteg_data")
+}
+
+model heltes {
   id              String    @id @db.Uuid
   bteg_id         String?
   name            String?
@@ -47,6 +78,21 @@ model departments {
   sub_title       String?
   created_at      DateTime? @db.Timestamp(6)
   updated_at      DateTime? @db.Timestamp(6)
+
+  @@schema("bteg_data")
+}
+
+model organization {
+  id          String    @id @db.Uuid
+  bteg_id     String?
+  name        String?
+  description String?
+  is_hr       Boolean?
+  is_active   Boolean?
+  parent_id   String?
+  sub_title   String?
+  created_at  DateTime? @db.Timestamp(6)
+  updated_at  DateTime? @db.Timestamp(6)
 
   @@schema("bteg_data")
 }
