@@ -1,18 +1,23 @@
 generator client {
-  provider        = "prisma-client-js"
-  output          = "../generated/prisma/client"
-  previewFeatures = ["multiSchema"]
+  provider = "prisma-client-js"
+  output   = "../generated/prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["bteg_data", "public"]
+}
+
+model Session {
+  id            String   @id
+  session_token String   @unique
+  expires       DateTime
+  user_id       BigInt?
 }
 
 model User {
-  id              String    @id @db.Uuid
-  bteg_id         String?
+  id              String   @id @default(uuid()) @db.Uuid
+  bteg_id         String   @unique
   email           String?
   phone           String?
   idcard_number   String?
@@ -24,86 +29,11 @@ model User {
   heltes_id       String?
   position_name   String?
   nice_name       String?
-  created_at      DateTime? @db.Timestamp(6)
-  updated_at      DateTime? @db.Timestamp(6)
+  created_at      DateTime? @default(now())
+  updated_at      DateTime? @updatedAt
   first_name      String?
   last_name       String?
   organization_id String?
-
-  @@schema("bteg_data")
-}
-
-model alba {
-  id              String    @id @db.Uuid
-  bteg_id         String?
-  name            String?
-  description     String?
-  is_new          Boolean?
-  is_active       Boolean?
-  organization_id String?
-  gazar_id        String?
-  heltes_id       String?
-  darga_id        String?
-  sub_title       String?
-  created_at      DateTime? @db.Timestamp(6)
-  updated_at      DateTime? @db.Timestamp(6)
-
-  @@schema("bteg_data")
-}
-
-model gazar {
-  id              String    @id @db.Uuid
-  bteg_id         String?
-  name            String?
-  description     String?
-  is_active       Boolean?
-  darga_id        String?
-  organization_id String?
-  created_at      DateTime? @db.Timestamp(6)
-  updated_at      DateTime? @db.Timestamp(6)
-
-  @@schema("bteg_data")
-}
-
-model heltes {
-  id              String    @id @db.Uuid
-  bteg_id         String?
-  name            String?
-  description     String?
-  is_new          Boolean?
-  organization_id String?
-  gazar_id        String?
-  darga_id        String?
-  is_active       Boolean?
-  sub_title       String?
-  created_at      DateTime? @db.Timestamp(6)
-  updated_at      DateTime? @db.Timestamp(6)
-
-  @@schema("bteg_data")
-}
-
-model organization {
-  id          String    @id @db.Uuid
-  bteg_id     String?
-  name        String?
-  description String?
-  is_hr       Boolean?
-  is_active   Boolean?
-  parent_id   String?
-  sub_title   String?
-  created_at  DateTime? @db.Timestamp(6)
-  updated_at  DateTime? @db.Timestamp(6)
-
-  @@schema("bteg_data")
-}
-
-model Session {
-  id            String   @id
-  session_token String   @unique
-  expires       DateTime
-  user_id       BigInt?
-
-  @@schema("public")
 }
 
 model clause {
@@ -117,8 +47,6 @@ model clause {
   other_clause    clause[]          @relation("clauseToclause")
   section         section           @relation(fields: [sectionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   clause_position clause_position[]
-
-  @@schema("public")
 }
 
 model clause_position {
@@ -130,8 +58,6 @@ model clause_position {
   clause     clause                @relation(fields: [clauseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   position   position              @relation(fields: [positionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   rating     rating[]
-
-  @@schema("public")
 }
 
 model company {
@@ -140,8 +66,6 @@ model company {
   registrationNumber String?      @db.VarChar(255)
   isDeleted          Boolean      @default(false)
   department         department[]
-
-  @@schema("public")
 }
 
 model department {
@@ -151,8 +75,6 @@ model department {
   isDeleted Boolean    @default(false)
   company   company?   @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   division  division[]
-
-  @@schema("public")
 }
 
 model division {
@@ -163,8 +85,6 @@ model division {
   bteg_id      Int?
   department   department? @relation(fields: [departmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   position     position[]
-
-  @@schema("public")
 }
 
 model policy {
@@ -174,8 +94,6 @@ model policy {
   referenceCode String    @unique @db.VarChar(255)
   isDeleted     Boolean   @default(false)
   section       section[]
-
-  @@schema("public")
 }
 
 model position {
@@ -186,8 +104,6 @@ model position {
   bteg_id         Int?
   clause_position clause_position[]
   division        division          @relation(fields: [divisionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@schema("public")
 }
 
 model rating {
@@ -200,8 +116,6 @@ model rating {
   scored_date        DateTime        @db.Date
   clause_position    clause_position @relation(fields: [clause_position_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   rating_session     rating_session  @relation(fields: [rating_session_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@schema("public")
 }
 
 model rating_session {
@@ -211,8 +125,6 @@ model rating_session {
   name           String?
   rating_process rating_process
   rating         rating[]
-
-  @@schema("public")
 }
 
 model section {
@@ -223,8 +135,6 @@ model section {
   isDeleted       Boolean  @default(false)
   clause          clause[]
   policy          policy?  @relation(fields: [policyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@schema("public")
 }
 
 enum Role {
@@ -233,15 +143,11 @@ enum Role {
   ADMIN
   DARGA
   UB
-
-  @@schema("public")
 }
 
 enum rating_process {
   ACTIVE
   END
-
-  @@schema("public")
 }
 
 enum type_clause_position {
@@ -249,6 +155,4 @@ enum type_clause_position {
   MONITORING
   VERIFICATION
   DEPLOYMENT
-
-  @@schema("public")
 }
