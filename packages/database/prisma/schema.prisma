@@ -15,28 +15,8 @@ model Session {
   user_id       BigInt?
 }
 
-// model User {
-//   id              String   @id @default(uuid()) @db.Uuid
-//   bteg_id         String   @unique
-//   email           String?
-//   phone           String?
-//   idcard_number   String?
-//   is_active       Boolean?
-//   address         String?
-//   register_number String?
-//   gazar_id        String?
-//   alba_id         String?
-//   heltes_id       String?
-//   position_name   String?
-//   nice_name       String?
-//   created_at      DateTime? @default(now())
-//   updated_at      DateTime? @updatedAt
-//   first_name      String?
-//   last_name       String?
-//   organization_id String?
-// }
 
-model Organization {
+model organization {
   id        String @id @db.Uuid
   bteg_id   String   @unique      // MySQL дээрх ID-г хадгална
   name      String
@@ -45,53 +25,98 @@ model Organization {
   is_active Boolean?
   description String?
   created_at DateTime 
-  Gazar Gazar[]
+  gazar gazar[]
+  heltes heltes[]
+  alba alba[]
 }
 
 
+model user {
+  id              String   @id @default(uuid()) @db.Uuid
+  bteg_id         String   @unique
+  email           String?
+  phone           String?
+  idcard_number   String?
+  is_active       Boolean?
+  address         String?
+  register_number String?
+  gazar_id        String?
+  alba_id         String?
+  heltes_id       String?
+  position_name   String?
+  nice_name       String?
+  created_at      DateTime? @default(now())
+  updated_at      DateTime? @updatedAt
+  first_name      String?
+  last_name       String?
+  organization_id String?
+
+  gazar       gazar? @relation(fields: [gazar_id], references: [bteg_id], name: "gazar_ajilchid")
+  heltes       heltes? @relation(fields: [heltes_id], references: [bteg_id], name: "heltes_ajilchid")
+  alba       alba? @relation(fields: [alba_id], references: [bteg_id], name: "alba_ajilchid")
+
+  gazar_darga gazar? @relation("gazar_darga")
+  heltes_darga heltes? @relation("heltes_darga")
+  alba_darga alba? @relation("alba_darga")
+}
+
+
+
 // //g_department
-// model Alba {
-//   id        String @id @db.Uuid
-//   bteg_id   String   @unique      // MySQL дээрх ID-г хадгална
-//   name      String? 
-//   sub_title String?
-//   parent_id String?
-//   heltes_id String?  
-//   is_active Boolean
-//   description String?
-//   organization_id String?
-//   gazar_id String?
-//   darga_id String?
-//   created_at DateTime 
-//   updated_at DateTime
+model alba {
+  id        String @id @db.Uuid
+  bteg_id   String   @unique      // MySQL дээрх ID-г хадгална
+  darga_id String? @unique
+  sub_title String?
+  organization_id String?
+  name      String? 
+  description String?
+  gazar_id String?
+  heltes_id String?  
+  is_active Boolean
+  created_at DateTime 
+  updated_at DateTime?
+  organization organization? @relation(fields: [organization_id], references: [bteg_id])
+  user user? @relation(name: "alba_darga", fields: [darga_id], references: [bteg_id])
+  gazar gazar? @relation(fields: [gazar_id], references: [bteg_id])
+  heltes heltes? @relation(fields: [heltes_id], references: [bteg_id])
+  ajilchid user[] @relation(name: "alba_ajilchid")
+}
 
-// }
-
-// //g_heltes
-// model Heltes {
-//   id String @id @db.Uuid
-//   bteg_id String @unique
-//   created_at DateTime?
-//   updated_at DateTime?
-//   is_active Boolean
-//   sub_title String?
-//   darga_id String?
-//   organization_id String?
-//   gazar_id String?
-//   description String?
-//   name String?
-// }
-
-// g_gazar
-model Gazar {
+// //g_heltes done
+model heltes {
   id String @id @db.Uuid
-  bteg_id String
+  bteg_id String @unique
+  sub_title String?
+  darga_id String? @unique
+  organization_id String?
+  gazar_id String?
+  description String?
+  name String?
+  is_active Boolean
+  updated_at DateTime?
+  created_at DateTime?
+  user user? @relation(name: "heltes_darga", fields: [darga_id], references: [bteg_id])
+  organization organization? @relation(fields: [organization_id], references: [bteg_id])
+  gazar gazar? @relation(fields: [gazar_id], references: [bteg_id])
+  alba alba[]
+  ajilchid user[] @relation(name: "heltes_ajilchid")
+}
+
+// g_gazar--done
+model gazar {
+  id String @id @db.Uuid
+  bteg_id String @unique
   created_at DateTime
   updated_at DateTime?
-  darga_id String?
+  darga_id String? @unique
   is_active Boolean
   organization_id String
-  Organization Organization @relation(fields: [organization_id], references: [bteg_id])
+  user user? @relation(fields: [darga_id], name: "gazar_darga", references: [bteg_id])
+  ajilchid user[] @relation(name: "gazar_ajilchid")
+  organization organization @relation(fields: [organization_id], references: [bteg_id])
+  heltes heltes[]
+  alba alba[]
 }
 
 
