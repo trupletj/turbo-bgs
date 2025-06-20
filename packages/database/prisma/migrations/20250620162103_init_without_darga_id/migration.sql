@@ -1,50 +1,21 @@
-/*
-  Warnings:
+-- CreateEnum
+CREATE TYPE "Role" AS ENUM ('USER', 'HR', 'ADMIN', 'DARGA', 'UB');
 
-  - You are about to drop the column `clause_position_id` on the `rating` table. All the data in the column will be lost.
-  - You are about to drop the `Gazar` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Organization` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `clause_position` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `position` table. If the table is not empty, all the data it contains will be lost.
-  - Added the required column `clause_job_position_id` to the `rating` table without a default value. This is not possible if the table is not empty.
+-- CreateEnum
+CREATE TYPE "rating_process" AS ENUM ('ACTIVE', 'END');
 
-*/
 -- CreateEnum
 CREATE TYPE "type_clause_job_position" AS ENUM ('IMPLEMENTATION', 'MONITORING', 'VERIFICATION', 'DEPLOYMENT');
 
--- DropForeignKey
-ALTER TABLE "Gazar" DROP CONSTRAINT "Gazar_organization_id_fkey";
+-- CreateTable
+CREATE TABLE "Session" (
+    "id" TEXT NOT NULL,
+    "session_token" TEXT NOT NULL,
+    "expires" TIMESTAMP(3) NOT NULL,
+    "user_id" BIGINT,
 
--- DropForeignKey
-ALTER TABLE "clause_position" DROP CONSTRAINT "clause_position_clauseId_fkey";
-
--- DropForeignKey
-ALTER TABLE "clause_position" DROP CONSTRAINT "clause_position_positionId_fkey";
-
--- DropForeignKey
-ALTER TABLE "position" DROP CONSTRAINT "position_divisionId_fkey";
-
--- DropForeignKey
-ALTER TABLE "rating" DROP CONSTRAINT "rating_clause_position_id_fkey";
-
--- AlterTable
-ALTER TABLE "rating" DROP COLUMN "clause_position_id",
-ADD COLUMN     "clause_job_position_id" UUID NOT NULL;
-
--- DropTable
-DROP TABLE "Gazar";
-
--- DropTable
-DROP TABLE "Organization";
-
--- DropTable
-DROP TABLE "clause_position";
-
--- DropTable
-DROP TABLE "position";
-
--- DropEnum
-DROP TYPE "type_clause_position";
+    CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "organization" (
@@ -73,7 +44,7 @@ CREATE TABLE "user" (
     "gazar_id" TEXT,
     "alba_id" TEXT,
     "heltes_id" TEXT,
-    "job_position_name" TEXT,
+    "job_position_id" TEXT,
     "nice_name" TEXT,
     "created_at" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
@@ -88,7 +59,6 @@ CREATE TABLE "user" (
 CREATE TABLE "alba" (
     "id" UUID NOT NULL,
     "bteg_id" TEXT NOT NULL,
-    "darga_id" TEXT,
     "sub_title" TEXT,
     "organization_id" TEXT,
     "name" TEXT,
@@ -107,7 +77,6 @@ CREATE TABLE "heltes" (
     "id" UUID NOT NULL,
     "bteg_id" TEXT NOT NULL,
     "sub_title" TEXT,
-    "darga_id" TEXT,
     "organization_id" TEXT,
     "gazar_id" TEXT,
     "description" TEXT,
@@ -125,11 +94,22 @@ CREATE TABLE "gazar" (
     "bteg_id" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL,
     "updated_at" TIMESTAMP(3),
-    "darga_id" TEXT,
     "is_active" BOOLEAN NOT NULL,
     "organization_id" TEXT NOT NULL,
 
     CONSTRAINT "gazar_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "clause" (
+    "id" UUID NOT NULL,
+    "text" TEXT NOT NULL,
+    "referenceNumber" TEXT NOT NULL,
+    "sectionId" UUID NOT NULL,
+    "parentId" UUID,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "clause_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -141,6 +121,17 @@ CREATE TABLE "clause_job_position" (
     "type" "type_clause_job_position",
 
     CONSTRAINT "clause_job_position_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "policy" (
+    "id" UUID NOT NULL,
+    "name" VARCHAR(255),
+    "approvedDate" DATE,
+    "referenceCode" VARCHAR(255) NOT NULL,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "policy_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -160,6 +151,44 @@ CREATE TABLE "job_position" (
     CONSTRAINT "job_position_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "rating" (
+    "id" UUID NOT NULL,
+    "score" INTEGER NOT NULL,
+    "description" TEXT,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "clause_job_position_id" UUID NOT NULL,
+    "rating_session_id" UUID NOT NULL,
+    "scored_date" DATE NOT NULL,
+
+    CONSTRAINT "rating_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "rating_session" (
+    "id" UUID NOT NULL,
+    "startDate" DATE NOT NULL,
+    "endDate" DATE NOT NULL,
+    "name" TEXT,
+    "rating_process" "rating_process" NOT NULL,
+
+    CONSTRAINT "rating_session_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "section" (
+    "id" UUID NOT NULL,
+    "policyId" UUID,
+    "text" TEXT NOT NULL,
+    "referenceNumber" VARCHAR(255),
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "section_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Session_session_token_key" ON "Session"("session_token");
+
 -- CreateIndex
 CREATE UNIQUE INDEX "organization_bteg_id_key" ON "organization"("bteg_id");
 
@@ -170,19 +199,16 @@ CREATE UNIQUE INDEX "user_bteg_id_key" ON "user"("bteg_id");
 CREATE UNIQUE INDEX "alba_bteg_id_key" ON "alba"("bteg_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "alba_darga_id_key" ON "alba"("darga_id");
-
--- CreateIndex
 CREATE UNIQUE INDEX "heltes_bteg_id_key" ON "heltes"("bteg_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "heltes_darga_id_key" ON "heltes"("darga_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "gazar_bteg_id_key" ON "gazar"("bteg_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "gazar_darga_id_key" ON "gazar"("darga_id");
+CREATE UNIQUE INDEX "policy_referenceCode_key" ON "policy"("referenceCode");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "job_position_bteg_id_key" ON "job_position"("bteg_id");
 
 -- AddForeignKey
 ALTER TABLE "user" ADD CONSTRAINT "user_gazar_id_fkey" FOREIGN KEY ("gazar_id") REFERENCES "gazar"("bteg_id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -194,10 +220,10 @@ ALTER TABLE "user" ADD CONSTRAINT "user_heltes_id_fkey" FOREIGN KEY ("heltes_id"
 ALTER TABLE "user" ADD CONSTRAINT "user_alba_id_fkey" FOREIGN KEY ("alba_id") REFERENCES "alba"("bteg_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "alba" ADD CONSTRAINT "alba_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organization"("bteg_id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "user" ADD CONSTRAINT "user_job_position_id_fkey" FOREIGN KEY ("job_position_id") REFERENCES "job_position"("bteg_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "alba" ADD CONSTRAINT "alba_darga_id_fkey" FOREIGN KEY ("darga_id") REFERENCES "user"("bteg_id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "alba" ADD CONSTRAINT "alba_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organization"("bteg_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "alba" ADD CONSTRAINT "alba_gazar_id_fkey" FOREIGN KEY ("gazar_id") REFERENCES "gazar"("bteg_id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -206,28 +232,25 @@ ALTER TABLE "alba" ADD CONSTRAINT "alba_gazar_id_fkey" FOREIGN KEY ("gazar_id") 
 ALTER TABLE "alba" ADD CONSTRAINT "alba_heltes_id_fkey" FOREIGN KEY ("heltes_id") REFERENCES "heltes"("bteg_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "heltes" ADD CONSTRAINT "heltes_darga_id_fkey" FOREIGN KEY ("darga_id") REFERENCES "user"("bteg_id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "heltes" ADD CONSTRAINT "heltes_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organization"("bteg_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "heltes" ADD CONSTRAINT "heltes_gazar_id_fkey" FOREIGN KEY ("gazar_id") REFERENCES "gazar"("bteg_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "gazar" ADD CONSTRAINT "gazar_darga_id_fkey" FOREIGN KEY ("darga_id") REFERENCES "user"("bteg_id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "gazar" ADD CONSTRAINT "gazar_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organization"("bteg_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "gazar" ADD CONSTRAINT "gazar_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organization"("bteg_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "clause" ADD CONSTRAINT "clause_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "clause"("id") ON DELETE SET NULL ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "clause" ADD CONSTRAINT "clause_sectionId_fkey" FOREIGN KEY ("sectionId") REFERENCES "section"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "clause_job_position" ADD CONSTRAINT "clause_job_position_clauseId_fkey" FOREIGN KEY ("clauseId") REFERENCES "clause"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "clause_job_position" ADD CONSTRAINT "clause_job_position_job_positionId_fkey" FOREIGN KEY ("job_positionId") REFERENCES "job_position"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
-
--- AddForeignKey
-ALTER TABLE "job_position" ADD CONSTRAINT "job_position_divisionId_fkey" FOREIGN KEY ("divisionId") REFERENCES "division"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "job_position" ADD CONSTRAINT "job_position_gazar_id_fkey" FOREIGN KEY ("gazar_id") REFERENCES "gazar"("bteg_id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -243,3 +266,9 @@ ALTER TABLE "job_position" ADD CONSTRAINT "job_position_organization_id_fkey" FO
 
 -- AddForeignKey
 ALTER TABLE "rating" ADD CONSTRAINT "rating_clause_job_position_id_fkey" FOREIGN KEY ("clause_job_position_id") REFERENCES "clause_job_position"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "rating" ADD CONSTRAINT "rating_rating_session_id_fkey" FOREIGN KEY ("rating_session_id") REFERENCES "rating_session"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "section" ADD CONSTRAINT "section_policyId_fkey" FOREIGN KEY ("policyId") REFERENCES "policy"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;

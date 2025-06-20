@@ -56,10 +56,6 @@ model user {
   heltes       heltes? @relation(fields: [heltes_id], references: [bteg_id], name: "heltes_ajilchid")
   alba       alba? @relation(fields: [alba_id], references: [bteg_id], name: "alba_ajilchid")
 
-  gazar_darga gazar? @relation("gazar_darga")
-  heltes_darga heltes? @relation("heltes_darga")
-  alba_darga alba? @relation("alba_darga")
-
   job_position job_position? @relation(fields: [job_position_id], references: [bteg_id])
 }
 
@@ -69,7 +65,6 @@ model user {
 model alba {
   id        String @id @db.Uuid
   bteg_id   String   @unique      // MySQL дээрх ID-г хадгална
-  darga_id String? @unique
   sub_title String?
   organization_id String?
   name      String? 
@@ -80,7 +75,6 @@ model alba {
   created_at DateTime 
   updated_at DateTime?
   organization organization? @relation(fields: [organization_id], references: [bteg_id])
-  user user? @relation(name: "alba_darga", fields: [darga_id], references: [bteg_id])
   gazar gazar? @relation(fields: [gazar_id], references: [bteg_id])
   heltes heltes? @relation(fields: [heltes_id], references: [bteg_id])
   ajilchid user[] @relation(name: "alba_ajilchid")
@@ -92,7 +86,6 @@ model heltes {
   id String @id @db.Uuid
   bteg_id String @unique
   sub_title String?
-  darga_id String? @unique
   organization_id String?
   gazar_id String?
   description String?
@@ -100,7 +93,6 @@ model heltes {
   is_active Boolean
   updated_at DateTime?
   created_at DateTime?
-  user user? @relation(name: "heltes_darga", fields: [darga_id], references: [bteg_id])
   organization organization? @relation(fields: [organization_id], references: [bteg_id])
   gazar gazar? @relation(fields: [gazar_id], references: [bteg_id])
   alba alba[]
@@ -114,10 +106,8 @@ model gazar {
   bteg_id String @unique
   created_at DateTime
   updated_at DateTime?
-  darga_id String? @unique
   is_active Boolean
   organization_id String
-  user user? @relation(fields: [darga_id], name: "gazar_darga", references: [bteg_id])
   ajilchid user[] @relation(name: "gazar_ajilchid")
   organization organization @relation(fields: [organization_id], references: [bteg_id])
   heltes heltes[]

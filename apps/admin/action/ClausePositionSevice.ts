@@ -1,43 +1,43 @@
 "use server";
 
 import { prisma } from "@repo/database";
-import { type_clause_position } from "@repo/database/generated/prisma/client/client";
+import { type_clause_job_position } from "@repo/database/generated/prisma/client/client";
 
 export async function createClausePositions(
   clauseId: string,
-  positionIds: string[],
-  type: type_clause_position
+  job_positionIds: string[],
+  type: type_clause_job_position
 ) {
   try {
-    if (!clauseId || !positionIds.length || !type) {
-      throw new Error("clauseId, positionIds болон type шаардлагатай");
+    if (!clauseId || !job_positionIds.length || !type) {
+      throw new Error("clauseId, job_positionIds болон type шаардлагатай");
     }
 
     const clause = await prisma.clause.findUnique({ where: { id: clauseId } });
     if (!clause) throw new Error("Заалт олдсонгүй");
 
-    const positions = await prisma.position.findMany({
-      where: { id: { in: positionIds }, isDeleted: false },
+    const job_positions = await prisma.job_position.findMany({
+      where: { id: { in: job_positionIds }, isDeleted: false },
       select: { id: true, divisionId: true },
     });
-    if (positions.length !== positionIds.length) {
+    if (job_positions.length !== job_positionIds.length) {
       throw new Error("Ажлын байр олдсонгүй.");
     }
 
-    const divisionIds = [...new Set(positions.map((p) => p.divisionId))];
+    const divisionIds = [...new Set(job_positions.map((p) => p.divisionId))];
     if (divisionIds.length > 1) {
-      throw new Error("All positions must belong to the same division");
+      throw new Error("All job_positions must belong to the same division");
     }
 
-    const clausePositions = await prisma.clause_position.createMany({
-      data: positionIds.map((positionId) => ({
+    const clausePositions = await prisma.clause_job_position.createMany({
+      data: job_positionIds.map((job_positionId) => ({
         clauseId,
-        positionId,
+        job_positionId,
         type,
       })),
     });
 
-    console.log("Clause positions created:", {
+    console.log("Clause job_positions created:", {
       clauseId,
       count: clausePositions.count,
     });
@@ -50,42 +50,42 @@ export async function createClausePositions(
 
 export async function deleteClausePosition(id: string) {
   try {
-    const clausePosition = await prisma.clause_position.update({
+    const clausePosition = await prisma.clause_job_position.update({
       where: { id },
       data: { isDeleted: true },
     });
-    console.log("Clause position deleted:", { id });
+    console.log("Clause job_position deleted:", { id });
     return clausePosition;
   } catch (error) {
     console.error("deleteClausePosition error:", error);
-    throw new Error("Failed to delete clause position");
+    throw new Error("Failed to delete clause job_position");
   }
 }
 
 export async function getClausePositionsByClauseId(clauseId: string) {
   try {
-    const clausePositions = await prisma.clause_position.findMany({
+    const clausePositions = await prisma.clause_job_position.findMany({
       where: { clauseId, isDeleted: false },
       include: {
-        position: { select: { id: true, name: true, divisionId: true } },
+        job_position: { select: { id: true, name: true, divisionId: true } },
       },
     });
-    console.log("Clause positions fetched:", {
+    console.log("Clause job_positions fetched:", {
       clauseId,
       count: clausePositions.length,
     });
     return clausePositions;
   } catch (error) {
     console.error("getClausePositionsByClauseId error:", error);
-    throw new Error("Failed to fetch clause positions");
+    throw new Error("Failed to fetch clause job_positions");
   }
 }
 
-export async function getClausesByPositionId(positionId: string) {
+export async function getClausesByPositionId(job_positionId: string) {
   try {
-    const clausesId = await prisma.clause_position.findMany({
+    const clausesId = await prisma.clause_job_position.findMany({
       where: {
-        positionId,
+        job_positionId,
         isDeleted: false,
       },
       select: { clauseId: true },
@@ -118,42 +118,44 @@ export async function getClausesByPositionId(positionId: string) {
 }
 
 import * as data from "@/lib/data";
-import { positions, divisions } from "@/lib/data";
+import { job_positions, divisions } from "@/lib/data";
 
 export async function createClausePositionsFromprisma(
   clauseId: string,
-  positionIds: string[],
-  type: type_clause_position
+  job_positionIds: string[],
+  type: type_clause_job_position
 ) {
   try {
-    if (!clauseId || !positionIds.length || !type) {
-      throw new Error("clauseId, positionIds, and type are required");
+    if (!clauseId || !job_positionIds.length || !type) {
+      throw new Error("clauseId, job_positionIds, and type are required");
     }
 
     const clause = await prisma.clause.findUnique({ where: { id: clauseId } });
     if (!clause) throw new Error("Clause not found");
 
-    // Тогтмол өгөгдлөөс position шалгах
-    const validPositions = positions.filter((p) => positionIds.includes(p.id));
-    if (validPositions.length !== positionIds.length) {
-      throw new Error("Some positions not found");
+    // Тогтмол өгөгдлөөс job_position шалгах
+    const validPositions = job_positions.filter((p) =>
+      job_positionIds.includes(p.id)
+    );
+    if (validPositions.length !== job_positionIds.length) {
+      throw new Error("Some job_positions not found");
     }
 
-    // Бүх position нэг division-д хамаарах эсэхийг шалгах
+    // Бүх job_position нэг division-д хамаарах эсэхийг шалгах
     const divisionIds = [...new Set(validPositions.map((p) => p.divisionId))];
     if (divisionIds.length > 1) {
-      throw new Error("All positions must belong to the same division");
+      throw new Error("All job_positions must belong to the same division");
     }
 
-    const clausePositions = await prisma.clause_position.createMany({
-      data: positionIds.map((positionId) => ({
+    const clausePositions = await prisma.clause_job_position.createMany({
+      data: job_positionIds.map((job_positionId) => ({
         clauseId,
-        positionId,
+        job_positionId,
         type,
       })),
     });
 
-    console.log("Clause positions created:", {
+    console.log("Clause job_positions created:", {
       clauseId,
       count: clausePositions.count,
     });
@@ -166,43 +168,45 @@ export async function createClausePositionsFromprisma(
 
 export async function deleteClausePositionFromprisma(id: string) {
   try {
-    const clausePosition = await prisma.clause_position.update({
+    const clausePosition = await prisma.clause_job_position.update({
       where: { id },
       data: { isDeleted: true },
     });
-    console.log("Clause position deleted:", { id });
+    console.log("Clause job_position deleted:", { id });
     return clausePosition;
   } catch (error) {
     console.error("deleteClausePosition error:", error);
-    throw new Error("Failed to delete clause position");
+    throw new Error("Failed to delete clause job_position");
   }
 }
 
 export async function getClausePositionsByClauseIdFromprisma(clauseId: string) {
   try {
-    const clausePositions = await prisma.clause_position.findMany({
+    const clausePositions = await prisma.clause_job_position.findMany({
       where: { clauseId, isDeleted: false },
-      include: { position: { select: { id: true, name: true } } },
+      include: { job_position: { select: { id: true, name: true } } },
     });
     // Тогтмол өгөгдлөөс divisionId нэмэх
     const enrichedPositions = clausePositions.map((cp) => {
-      const position = positions.find((p) => p.id === cp.positionId);
+      const job_position = job_positions.find(
+        (p) => p.id === cp.job_positionId
+      );
       return {
         ...cp,
-        position: {
-          ...cp.position,
-          divisionId: position?.divisionId || "",
+        job_position: {
+          ...cp.job_position,
+          divisionId: job_position?.divisionId || "",
         },
       };
     });
-    console.log("Clause positions fetched:", {
+    console.log("Clause job_positions fetched:", {
       clauseId,
       count: enrichedPositions.length,
     });
     return enrichedPositions;
   } catch (error) {
     console.error("getClausePositionsByClauseId error:", error);
-    throw new Error("Failed to fetch clause positions");
+    throw new Error("Failed to fetch clause job_positions");
   }
 }
 
@@ -213,32 +217,32 @@ export async function getFilteredPositions(
 ) {
   try {
     if (!divisionId) throw new Error("divisionId required");
-    const filteredPositions = positions.filter(
+    const filteredPositions = job_positions.filter(
       (p) =>
         p.divisionId === divisionId &&
         (searchTerm
           ? p.name.toLowerCase().includes(searchTerm.toLowerCase())
           : true)
     );
-    console.log("Filtered positions:", {
+    console.log("Filtered job_positions:", {
       divisionId,
       count: filteredPositions.length,
     });
     return filteredPositions;
   } catch (error) {
     console.error("getFilteredPositions error:", error);
-    throw new Error("Failed to fetch filtered positions");
+    throw new Error("Failed to fetch filtered job_positions");
   }
 }
 
 export async function createClausePositionExtended(
   clauseId: string,
-  positionId: string,
-  type: type_clause_position
+  job_positionId: string,
+  type: type_clause_job_position
 ) {
   try {
-    if (!clauseId || !positionId || !type) {
-      throw new Error("clauseId, positionId, and type are required");
+    if (!clauseId || !job_positionId || !type) {
+      throw new Error("clauseId, job_positionId, and type are required");
     }
 
     // Заалт байгаа эсэхийг шалгах
@@ -246,39 +250,43 @@ export async function createClausePositionExtended(
     if (!clause) throw new Error("Clause not found");
 
     // Ажлын байр тогтмол өгөгдөлд байгаа эсэх
-    const validPosition = positions.find((p) => p.id === positionId);
+    const validPosition = job_positions.find((p) => p.id === job_positionId);
     if (!validPosition) throw new Error("Position not found");
 
     // Одоо байгаа холбоосыг шалгах (давхардалгүй)
-    const existing = await prisma.clause_position.findFirst({
-      where: { clauseId, positionId, isDeleted: false },
+    const existing = await prisma.clause_job_position.findFirst({
+      where: { clauseId, job_positionId, isDeleted: false },
     });
     if (existing) {
       // Хэрвээ type өөр бол шинэчлэх
       if (existing.type !== type) {
-        await prisma.clause_position.update({
+        await prisma.clause_job_position.update({
           where: { id: existing.id },
           data: { type },
         });
       }
-      return { message: "Clause position already exists or updated" };
+      return { message: "Clause job_position already exists or updated" };
     }
 
-    // Шинэ clause_position мөр нэмэх
-    const clausePosition = await prisma.clause_position.create({
+    // Шинэ clause_job_position мөр нэмэх
+    const clausePosition = await prisma.clause_job_position.create({
       data: {
         clauseId,
-        positionId,
+        job_positionId,
         type,
       },
     });
 
-    console.log("Clause position created:", { clauseId, positionId, type });
+    console.log("Clause job_position created:", {
+      clauseId,
+      job_positionId,
+      type,
+    });
     return clausePosition;
   } catch (error) {
     console.error("createClausePositionExtended error:", error);
     throw new Error(
-      `Failed to create clause position: ${(error as Error).message}`
+      `Failed to create clause job_position: ${(error as Error).message}`
     );
   }
 }
