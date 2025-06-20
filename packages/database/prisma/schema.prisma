@@ -36,6 +36,41 @@ model User {
   organization_id String?
 }
 
+model Organization {
+  id        String @id @db.Uuid
+  bteg_id   String   @unique      // MySQL дээрх ID-г хадгална
+  name      String
+  sub_title String?
+  is_hr     Boolean
+  is_active Boolean?
+  description String?
+  created_at DateTime 
+}
+
+
+//g_department
+model Alba {
+  id        String @id @db.Uuid
+  bteg_id   String   @unique      // MySQL дээрх ID-г хадгална
+  name      String
+  sub_title String?
+  heltes_id String?  
+  description String?
+  created_at DateTime 
+
+}
+
+
+// g_gazar
+model Gazar {
+heltes_id String
+}
+
+//g_heltes
+model Heltes {
+
+}
+
 model clause {
   id              String            @id @db.Uuid
   text            String

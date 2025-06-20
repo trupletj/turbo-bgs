@@ -18,6 +18,20 @@ CREATE TABLE "Session" (
 );
 
 -- CreateTable
+CREATE TABLE "Organization" (
+    "id" UUID NOT NULL,
+    "bteg_id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "sub_title" TEXT,
+    "is_hr" BOOLEAN NOT NULL,
+    "is_active" BOOLEAN,
+    "description" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Organization_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "clause" (
     "id" UUID NOT NULL,
     "text" TEXT NOT NULL,
@@ -130,6 +144,9 @@ CREATE TABLE "section" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Session_session_token_key" ON "Session"("session_token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Organization_bteg_id_key" ON "Organization"("bteg_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "policy_referenceCode_key" ON "policy"("referenceCode");
