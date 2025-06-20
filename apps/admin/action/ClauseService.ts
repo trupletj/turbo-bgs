@@ -1,3 +1,5 @@
+"use server";
+
 import { Clause } from "@/types";
 import { prisma } from "@repo/database";
 

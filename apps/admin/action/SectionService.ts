@@ -1,3 +1,5 @@
+"use server";
+
 import { prisma } from "@repo/database";
 import { Section } from "@/types";
 
