@@ -91,7 +91,6 @@ model Gazar {
   darga_id String?
   is_active Boolean
   organization_id String
-  heltes_id String
   Organization Organization @relation(fields: [organization_id], references: [bteg_id])
 }
 
