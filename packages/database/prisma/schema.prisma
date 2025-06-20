@@ -28,6 +28,7 @@ model organization {
   gazar gazar[]
   heltes heltes[]
   alba alba[]
+  job_position     job_position[]
 }
 
 
@@ -43,7 +44,7 @@ model user {
   gazar_id        String?
   alba_id         String?
   heltes_id       String?
-  position_name   String?
+  job_position_name   String?
   nice_name       String?
   created_at      DateTime? @default(now())
   updated_at      DateTime? @updatedAt
@@ -82,6 +83,7 @@ model alba {
   gazar gazar? @relation(fields: [gazar_id], references: [bteg_id])
   heltes heltes? @relation(fields: [heltes_id], references: [bteg_id])
   ajilchid user[] @relation(name: "alba_ajilchid")
+  job_position job_position[]
 }
 
 // //g_heltes done
@@ -102,6 +104,7 @@ model heltes {
   gazar gazar? @relation(fields: [gazar_id], references: [bteg_id])
   alba alba[]
   ajilchid user[] @relation(name: "heltes_ajilchid")
+  job_position job_position[]
 }
 
 // g_gazar--done
@@ -118,6 +121,7 @@ model gazar {
   organization organization @relation(fields: [organization_id], references: [bteg_id])
   heltes heltes[]
   alba alba[]
+  job_position     job_position[]
 }
 
 
@@ -131,20 +135,21 @@ model clause {
   clause          clause?           @relation("clauseToclause", fields: [parentId], references: [id], onUpdate: NoAction)
   other_clause    clause[]          @relation("clauseToclause")
   section         section           @relation(fields: [sectionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  clause_position clause_position[]
+  clause_job_position clause_job_position[]
 }
 
-model clause_position {
+model clause_job_position {
   id         String                @id @db.Uuid
   clauseId   String                @db.Uuid
-  positionId String                @db.Uuid
+  job_positionId String                @db.Uuid
   isDeleted  Boolean               @default(false)
-  type       type_clause_position?
+  type       type_clause_job_position?
   clause     clause                @relation(fields: [clauseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  position   position              @relation(fields: [positionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  job_position   job_position              @relation(fields: [job_positionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   rating     rating[]
 }
 
+//organization
 model company {
   id                 String       @id @db.Uuid
   name               String?      @db.VarChar(255)
@@ -153,6 +158,7 @@ model company {
   department         department[]
 }
 
+//heltes
 model department {
   id        String     @id @db.Uuid
   name      String?    @db.VarChar(255)
@@ -162,6 +168,7 @@ model department {
   division  division[]
 }
 
+//alba
 model division {
   id           String      @id @db.Uuid
   name         String?     @db.VarChar(255)
@@ -169,7 +176,7 @@ model division {
   isDeleted    Boolean     @default(false)
   bteg_id      Int?
   department   department? @relation(fields: [departmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  position     position[]
+  job_position     job_position[]
 }
 
 model policy {
@@ -181,14 +188,26 @@ model policy {
   section       section[]
 }
 
-model position {
+model job_position {
   id              String            @id @db.Uuid
-  name            String?           @db.VarChar(255)
+  bteg_id     String?
+  gazar_id String?
+  alba_id String? //department_id column
+  heltes_id String?
+  organization_id String?
+  name            String
+  description String?
+  created_at DateTime
   divisionId      String            @db.Uuid
   isDeleted       Boolean           @default(false)
-  bteg_id         Int?
-  clause_position clause_position[]
+
   division        division          @relation(fields: [divisionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  gazar gazar? @relation(fields: [gazar_id], references: [bteg_id])
+  alba alba? @relation(fields: [alba_id], references: [bteg_id])
+  heltes heltes? @relation(fields: [heltes_id], references: [bteg_id])
+  organization organization? @relation(fields: [organization_id], references: [bteg_id])
+
+  clause_job_position clause_job_position[]
 }
 
 model rating {
@@ -196,10 +215,10 @@ model rating {
   score              Int
   description        String?
   isDeleted          Boolean         @default(false)
-  clause_position_id String          @db.Uuid
+  clause_job_position_id String          @db.Uuid
   rating_session_id  String          @db.Uuid
   scored_date        DateTime        @db.Date
-  clause_position    clause_position @relation(fields: [clause_position_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  clause_job_position    clause_job_position @relation(fields: [clause_job_position_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   rating_session     rating_session  @relation(fields: [rating_session_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
@@ -235,7 +254,7 @@ enum rating_process {
   END
 }
 
-enum type_clause_position {
+enum type_clause_job_position {
   IMPLEMENTATION
   MONITORING
   VERIFICATION
