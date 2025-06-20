@@ -1,20 +1,18 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { use } from "react";
 import { notFound } from "next/navigation";
 import { toast } from "react-toastify";
-import PolicyFormWithPositionLink from "@/components/PolicyFromWithPositionLink";
-import { type_clause_position } from "@repo/database/generated/prisma/client/client";
+import PolicyForm from "@/components/PolicyForm";
 
-interface Clause {
+interface Policy {
   id: string;
-  referenceNumber: string;
-  text: string;
-  sectionId: string;
-  parentId: string | null;
-  children?: Clause[];
-  clause_position?: { positionId: string; type: type_clause_position }[];
+  name: string | null;
+  referenceCode: string | null;
+  approvedDate: string | null;
+  section?: Section[];
 }
 
 interface Section {
@@ -25,21 +23,20 @@ interface Section {
   clause?: Clause[];
 }
 
-interface Policy {
+interface Clause {
   id: string;
-  name: string | null;
-  referenceCode: string | null;
-  approvedDate: string | null;
-  section?: Section[];
+  referenceNumber: string;
+  text: string;
+  sectionId: string;
+  parentId: string | null;
+  children?: Clause[];
 }
 
 interface PolicyEditPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function PolicyEditPageWithPositionLink({
-  params,
-}: PolicyEditPageProps) {
+export default function PolicyEditPage({ params }: PolicyEditPageProps) {
   const router = useRouter();
   const resolvedParams = use(params);
   const [policy, setPolicy] = useState<Policy | null>(null);
@@ -85,7 +82,7 @@ export default function PolicyEditPageWithPositionLink({
   }
 
   return (
-    <PolicyFormWithPositionLink
+    <PolicyForm
       initialData={{
         id: policy.id,
         name: policy.name || "",
@@ -103,7 +100,6 @@ export default function PolicyEditPageWithPositionLink({
             text: c.text,
             parentId: c.parentId,
             children: c.children ?? [],
-            positions: c.clause_position ?? [], // ШИНЭ
           })),
         })),
       }}

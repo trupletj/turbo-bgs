@@ -1,5 +1,3 @@
-"use server";
-
 import { prisma } from "@repo/database";
 import { Clause, Policy } from "@/types";
 
