@@ -79,6 +79,10 @@ const data = {
       icon: Bot,
       items: [
         {
+          title: "Нийт",
+          url: "dashboard/rating",
+        },
+        {
           title: "Шинэ үнэлгээ",
           url: "#",
         },
