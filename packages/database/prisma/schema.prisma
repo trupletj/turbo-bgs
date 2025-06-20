@@ -77,6 +77,7 @@ model alba {
   is_active Boolean
   created_at DateTime 
   updated_at DateTime?
+  
   organization organization? @relation(fields: [organization_id], references: [bteg_id])
   user user? @relation(name: "alba_darga", fields: [darga_id], references: [bteg_id])
   gazar gazar? @relation(fields: [gazar_id], references: [bteg_id])
