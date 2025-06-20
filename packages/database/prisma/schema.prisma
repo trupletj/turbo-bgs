@@ -44,7 +44,7 @@ model user {
   gazar_id        String?
   alba_id         String?
   heltes_id       String?
-  job_position_name   String?
+  job_position_id   String?
   nice_name       String?
   created_at      DateTime? @default(now())
   updated_at      DateTime? @updatedAt
@@ -59,6 +59,8 @@ model user {
   gazar_darga gazar? @relation("gazar_darga")
   heltes_darga heltes? @relation("heltes_darga")
   alba_darga alba? @relation("alba_darga")
+
+  job_position job_position? @relation(fields: [job_position_id], references: [bteg_id])
 }
 
 
@@ -77,7 +79,6 @@ model alba {
   is_active Boolean
   created_at DateTime 
   updated_at DateTime?
-  
   organization organization? @relation(fields: [organization_id], references: [bteg_id])
   user user? @relation(name: "alba_darga", fields: [darga_id], references: [bteg_id])
   gazar gazar? @relation(fields: [gazar_id], references: [bteg_id])
@@ -149,36 +150,6 @@ model clause_job_position {
   rating     rating[]
 }
 
-//organization
-model company {
-  id                 String       @id @db.Uuid
-  name               String?      @db.VarChar(255)
-  registrationNumber String?      @db.VarChar(255)
-  isDeleted          Boolean      @default(false)
-  department         department[]
-}
-
-//heltes
-model department {
-  id        String     @id @db.Uuid
-  name      String?    @db.VarChar(255)
-  companyId String?    @db.Uuid
-  isDeleted Boolean    @default(false)
-  company   company?   @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  division  division[]
-}
-
-//alba
-model division {
-  id           String      @id @db.Uuid
-  name         String?     @db.VarChar(255)
-  departmentId String?     @db.Uuid
-  isDeleted    Boolean     @default(false)
-  bteg_id      Int?
-  department   department? @relation(fields: [departmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  job_position     job_position[]
-}
-
 model policy {
   id            String    @id @db.Uuid
   name          String?   @db.VarChar(255)
@@ -190,7 +161,7 @@ model policy {
 
 model job_position {
   id              String            @id @db.Uuid
-  bteg_id     String?
+  bteg_id     String? @unique
   gazar_id String?
   alba_id String? //department_id column
   heltes_id String?
@@ -201,12 +172,11 @@ model job_position {
   divisionId      String            @db.Uuid
   isDeleted       Boolean           @default(false)
 
-  division        division          @relation(fields: [divisionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   gazar gazar? @relation(fields: [gazar_id], references: [bteg_id])
   alba alba? @relation(fields: [alba_id], references: [bteg_id])
   heltes heltes? @relation(fields: [heltes_id], references: [bteg_id])
   organization organization? @relation(fields: [organization_id], references: [bteg_id])
-
+  user user[]
   clause_job_position clause_job_position[]
 }
 
