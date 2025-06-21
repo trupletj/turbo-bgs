@@ -3,7 +3,6 @@
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { notFound } from "next/navigation";
-import { toast } from "react-toastify";
 import PolicyEditerForm from "@/components/PolicyEditerForm";
 import { type_clause_job_position } from "@repo/database/generated/prisma/client/client";
 
