@@ -21,7 +21,6 @@ interface Policy {
 }
 
 export default function PolicyList() {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -56,7 +55,7 @@ export default function PolicyList() {
     if (!confirm("Журмыг устгахдаа итгэлтэй байна уу?")) return;
     try {
       console.log("Deleting policy:", { id });
-      const response = await fetch(`${API_URL}/api/policy?id=${id}`, {
+      const response = await fetch(`/api/policy?id=${id}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Устгахад алдаа гарлаа");
