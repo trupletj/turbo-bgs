@@ -221,14 +221,3 @@ enum type_clause_job_position {
   VERIFICATION
   DEPLOYMENT
 }
-
-model Profile {
-  id      String  @id @default(uuid()) @db.Uuid
-  userId  String?
-}
-
-
-model test {
-  id      String  @id @default(uuid()) @db.Uuid
-  userId  String?
-}
