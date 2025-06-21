@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { Button } from "@/components/ui/button";
 
 interface Clause {
   tempId: string;
@@ -69,27 +70,27 @@ const ClauseItem = ({
           className="flex-1 p-2 border rounded"
         />
         {level < 4 && (
-          <button
+          <Button
             type="button"
+            variant={"link"}
             onClick={() => addSubClause(sectionIndex, path)}
             disabled={isProcessing}
-            className={`px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-500 ${
-              isProcessing ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+          // className={`px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+          //   }`}
           >
             + Дэд заалт
-          </button>
+          </Button>
         )}
-        <button
+        <Button
           type="button"
+          variant={"destructive"}
           onClick={() => deleteClause(sectionIndex, path)}
           disabled={isProcessing}
-          className={`px-3 py-1 bg-red-600 text-white rounded hover:bg-red-500 ${
-            isProcessing ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+        // className={`px-3 py-1 bg-red-600 text-white rounded hover:bg-red-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+        //   }`}
         >
           - Устгах
-        </button>
+        </Button>
       </div>
       {clause.children && clause.children.length > 0 && (
         <div className="ml-6 mt-2">
@@ -181,9 +182,8 @@ const NewPolicy = () => {
         const newClause: Clause = {
           tempId: crypto.randomUUID(),
           text: "",
-          referenceNumber: `${section.referenceNumber}.${
-            section.clauses.length + 1
-          }`,
+          referenceNumber: `${section.referenceNumber}.${section.clauses.length + 1
+            }`,
           children: [],
         };
         section.clauses = [...section.clauses, newClause];
@@ -213,9 +213,8 @@ const NewPolicy = () => {
         const newSubClause: Clause = {
           tempId: crypto.randomUUID(),
           text: "",
-          referenceNumber: `${parentClause.referenceNumber}.${
-            (parentClause.children?.length ?? 0) + 1
-          }`,
+          referenceNumber: `${parentClause.referenceNumber}.${(parentClause.children?.length ?? 0) + 1
+            }`,
           children: [],
         };
 
@@ -419,15 +418,15 @@ const NewPolicy = () => {
       <form onSubmit={handleSubmit}>
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Шинэ Журам Үүсгэх</h1>
-          <button
+          <Button
             type="submit"
             disabled={isProcessing}
-            className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 w-max m-1 ${
-              isProcessing ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+          // className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 w-max m-1 ${
+          //   isProcessing ? "opacity-50 cursor-not-allowed" : ""
+          // }`}
           >
-            Журмыг үүсгэх
-          </button>
+            Хадгалах
+          </Button>
         </div>
 
         <div className="flex flex-wrap my-4 container w-full shadow-md p-3 justify-between gap-4">
@@ -490,16 +489,17 @@ const NewPolicy = () => {
         <div className="mt-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Бүлгүүд</h2>
-            <button
+            <Button
               type="button"
+              variant={"outline"}
               onClick={addSection}
               disabled={isProcessing}
-              className={`px-3 py-1 bg-green-600 text-white rounded hover:bg-green-500 ${
-                isProcessing ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className="cursor-pointer"
+            // className={`px-3 py-1 bg-green-600 text-white rounded hover:bg-green-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+            //   }`}
             >
               + Бүлэг нэмэх
-            </button>
+            </Button>
           </div>
 
           {/* Бүлгүүд */}
@@ -515,32 +515,32 @@ const NewPolicy = () => {
                   placeholder="Бүлгийн текст оруулна уу"
                   className="flex-1 p-2 border rounded"
                 />
-                <button
+                <Button
                   type="button"
+                  variant={"destructive"}
                   onClick={() => deleteSection(sectionIndex)}
                   disabled={isProcessing}
-                  className={`px-3 py-1 bg-red-600 text-white rounded hover:bg-red-500 ${
-                    isProcessing ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+                // className={`px-3 py-1 bg-red-600 text-white rounded hover:bg-red-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+                //   }`}
                 >
                   - Устгах
-                </button>
+                </Button>
               </div>
 
               {/* Заалтууд */}
               <div className="ml-6 mt-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-medium">Заалтууд</h3>
-                  <button
+                  <Button
                     type="button"
+                    variant={"link"}
                     onClick={() => addClause(sectionIndex)}
                     disabled={isProcessing}
-                    className={`px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 ${
-                      isProcessing ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
+                  // className={`px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+                  //   }`}
                   >
                     + Заалт нэмэх
-                  </button>
+                  </Button>
                 </div>
 
                 {section.clauses.map((clause, clauseIndex) => (
