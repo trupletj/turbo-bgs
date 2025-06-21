@@ -50,12 +50,10 @@ interface ClauseItemProps {
 const ClauseItem = ({
   sectionIndex,
   clause,
-  clauseIndex,
   path,
   updateClauseText,
   addSubClause,
   deleteClause,
-  parentRefNumber,
   level = 1,
   isProcessing,
 }: ClauseItemProps) => {
@@ -75,8 +73,8 @@ const ClauseItem = ({
             variant={"link"}
             onClick={() => addSubClause(sectionIndex, path)}
             disabled={isProcessing}
-          // className={`px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
-          //   }`}
+            // className={`px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+            //   }`}
           >
             + Дэд заалт
           </Button>
@@ -86,8 +84,8 @@ const ClauseItem = ({
           variant={"destructive"}
           onClick={() => deleteClause(sectionIndex, path)}
           disabled={isProcessing}
-        // className={`px-3 py-1 bg-red-600 text-white rounded hover:bg-red-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
-        //   }`}
+          // className={`px-3 py-1 bg-red-600 text-white rounded hover:bg-red-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+          //   }`}
         >
           - Устгах
         </Button>
@@ -182,8 +180,9 @@ const NewPolicy = () => {
         const newClause: Clause = {
           tempId: crypto.randomUUID(),
           text: "",
-          referenceNumber: `${section.referenceNumber}.${section.clauses.length + 1
-            }`,
+          referenceNumber: `${section.referenceNumber}.${
+            section.clauses.length + 1
+          }`,
           children: [],
         };
         section.clauses = [...section.clauses, newClause];
@@ -213,8 +212,9 @@ const NewPolicy = () => {
         const newSubClause: Clause = {
           tempId: crypto.randomUUID(),
           text: "",
-          referenceNumber: `${parentClause.referenceNumber}.${(parentClause.children?.length ?? 0) + 1
-            }`,
+          referenceNumber: `${parentClause.referenceNumber}.${
+            (parentClause.children?.length ?? 0) + 1
+          }`,
           children: [],
         };
 
@@ -395,13 +395,13 @@ const NewPolicy = () => {
         await createClauses(section.clauses);
       }
 
-      toast.success("Журмыг амжилттай бүртгүүллээ!", {
+      toast.success("Журмыг амжилттай бүртгэлээ", {
         position: "top-right",
         autoClose: 1000,
       });
 
       setTimeout(() => {
-        router.push("/");
+        router.push("/dashboard/policy");
       }, 1000);
     } catch (error) {
       toast.error(`Алдаа: ${(error as Error).message}`, {
@@ -421,9 +421,9 @@ const NewPolicy = () => {
           <Button
             type="submit"
             disabled={isProcessing}
-          // className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 w-max m-1 ${
-          //   isProcessing ? "opacity-50 cursor-not-allowed" : ""
-          // }`}
+            // className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 w-max m-1 ${
+            //   isProcessing ? "opacity-50 cursor-not-allowed" : ""
+            // }`}
           >
             Хадгалах
           </Button>
@@ -495,8 +495,8 @@ const NewPolicy = () => {
               onClick={addSection}
               disabled={isProcessing}
               className="cursor-pointer"
-            // className={`px-3 py-1 bg-green-600 text-white rounded hover:bg-green-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
-            //   }`}
+              // className={`px-3 py-1 bg-green-600 text-white rounded hover:bg-green-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+              //   }`}
             >
               + Бүлэг нэмэх
             </Button>
@@ -520,8 +520,8 @@ const NewPolicy = () => {
                   variant={"destructive"}
                   onClick={() => deleteSection(sectionIndex)}
                   disabled={isProcessing}
-                // className={`px-3 py-1 bg-red-600 text-white rounded hover:bg-red-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
-                //   }`}
+                  // className={`px-3 py-1 bg-red-600 text-white rounded hover:bg-red-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+                  //   }`}
                 >
                   - Устгах
                 </Button>
@@ -536,8 +536,8 @@ const NewPolicy = () => {
                     variant={"link"}
                     onClick={() => addClause(sectionIndex)}
                     disabled={isProcessing}
-                  // className={`px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
-                  //   }`}
+                    // className={`px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+                    //   }`}
                   >
                     + Заалт нэмэх
                   </Button>

@@ -442,15 +442,9 @@ export default function PolicyEditerForm({
       );
       console.log("Form submission successful");
       onSuccess();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Submission error:", error);
-      if (error.message.includes("Can't reach database server")) {
-        toast.error(
-          "Өгөгдлийн сангийн сервертэй холбогдох боломжгүй байна. Админд хандана уу."
-        );
-      } else {
-        toast.error(`Алдаа: ${error.message}`);
-      }
+      throw error;
     } finally {
       setIsProcessing(false);
     }

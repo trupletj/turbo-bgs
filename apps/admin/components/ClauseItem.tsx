@@ -1,21 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "react-toastify";
 import { type_clause_job_position } from "@repo/database/generated/prisma/client/client";
-
-interface ClausePosition {
-  id: string;
-  clauseId: string;
-  positionId: string;
-  type: type_clause_job_position | null;
-  position: {
-    id: string;
-    name: string | null;
-    divisionId: string;
-  };
-}
 
 interface Clause {
   id: string;
@@ -51,25 +37,14 @@ interface ClauseItemProps {
 export default function ClauseItem({
   sectionIndex,
   clause,
-  clauseIndex,
   path,
   updateClauseText,
   updateClausePositions,
   addSubClause,
   deleteClause,
-  parentRefNumber,
   level,
   isProcessing,
 }: ClauseItemProps) {
-  const [selectedDivision, setSelectedDivision] = useState<string | null>(null);
-  const [selectedPositions, setSelectedPositions] = useState<
-    { positionId: string; type: type_clause_job_position | null }[]
-  >(clause.positions || []);
-  const [filteredPositions, setFilteredPositions] = useState<
-    { id: string; name: string | null }[]
-  >([]);
-  const [isSaving, setIsSaving] = useState(false);
-
   return (
     <div className={`ml-${level * 4} mt-2`}>
       <div className="flex items-center gap-4">
@@ -79,14 +54,14 @@ export default function ClauseItem({
           onChange={(e) => updateClauseText(sectionIndex, path, e.target.value)}
           placeholder="Заалтын текст оруулна уу"
           className="flex-1 p-2 border rounded"
-          disabled={isProcessing || isSaving}
+          disabled={isProcessing}
         />
         <button
           type="button"
           onClick={() => addSubClause(sectionIndex, path)}
-          disabled={isProcessing || isSaving}
+          disabled={isProcessing}
           className={`px-3 py-1 bg-green-600 text-white rounded hover:bg-green-500 ${
-            isProcessing || isSaving ? "opacity-50 cursor-not-allowed" : ""
+            isProcessing ? "opacity-50 cursor-not-allowed" : ""
           }`}
         >
           + Дэд заалт
@@ -94,9 +69,9 @@ export default function ClauseItem({
         <button
           type="button"
           onClick={() => deleteClause(sectionIndex, path)}
-          disabled={isProcessing || isSaving}
+          disabled={isProcessing}
           className={`px-3 py-1 bg-red-600 text-white rounded hover:bg-red-500 ${
-            isProcessing || isSaving ? "opacity-50 cursor-not-allowed" : ""
+            isProcessing ? "opacity-50 cursor-not-allowed" : ""
           }`}
         >
           - Устгах
@@ -104,19 +79,13 @@ export default function ClauseItem({
       </div>
 
       <div className="ml-6 mt-2">
-        {selectedDivision && filteredPositions.length > 0 && (
+        {
           <div className="mt-2">
             <label className="block text-sm font-medium text-gray-700">
               Ажлын байр сонгох
             </label>
-            {filteredPositions.map((position) => (
-              <div key={position.id} className="flex items-center gap-2">
-                <span>{position.name}</span>
-                {selectedPositions.some((p) => p.positionId === position.id)}
-              </div>
-            ))}
           </div>
-        )}
+        }
       </div>
 
       {clause.children &&

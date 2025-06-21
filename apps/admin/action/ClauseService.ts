@@ -41,11 +41,19 @@ export const createClause = async (
 export const getClause = async (id: string) => {
   try {
     const clause = await prisma.clause.findFirst({
-      where: { id, isDeleted: false },
+      where: {
+        id,
+        isDeleted: false,
+        section: {
+          isDeleted: false,
+        },
+      },
       include: {
-        section: { where: { isDeleted: false } },
-        clause_position: {
-          include: { position: { where: { isDeleted: false } } },
+        section: true,
+        clause_job_position: {
+          include: {
+            job_position: true,
+          },
         },
       },
     });
@@ -63,11 +71,10 @@ export const getAllClauses = async (sectionId?: string) => {
     return await prisma.clause.findMany({
       where: { sectionId: sectionId || undefined, isDeleted: false },
       include: {
-        clause_position: {
-          include: { position: { where: { isDeleted: false } } },
+        clause_job_position: {
+          include: { job_position: true },
         },
       },
-      orderBy: { referenceNumber: "asc" },
     });
   } catch (error) {
     throw new Error(

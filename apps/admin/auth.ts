@@ -1,13 +1,13 @@
-import NextAuth from 'next-auth';
-import Credentials from 'next-auth/providers/credentials';
-import { prisma } from '@repo/database';
-import { findByRegister } from '@repo/actions';
-import { CredentialsSignin } from 'next-auth';
+import NextAuth from "next-auth";
+import Credentials from "next-auth/providers/credentials";
+import { prisma } from "@repo/database";
+import { findByRegister } from "@repo/actions";
+import { CredentialsSignin } from "next-auth";
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
-      id: 'credentials',
-      name: 'CredentialsWithOtp',
+      id: "credentials",
+      name: "CredentialsWithOtp",
       credentials: {
         register_number: {},
         phone: {},
@@ -16,17 +16,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       authorize: async (credentials) => {
         if (!credentials?.register_number) {
-          throw new CredentialsSignin('Register number is required.');
+          throw new CredentialsSignin("Register number is required.");
         }
 
         // OTP шалгах шат
 
         const user = await findByRegister(
-          credentials.register_number.toString(),
+          credentials.register_number.toString()
         );
 
         if (!user) {
-          throw new CredentialsSignin('InvalidCredentials');
+          throw new CredentialsSignin("InvalidCredentials");
         }
         if (
           !user.sms_code ||
@@ -34,7 +34,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.sms_active < new Date() ||
           user.sms_code !== credentials.otp
         ) {
-          throw new CredentialsSignin('InvalidOtp');
+          throw new CredentialsSignin("InvalidOtp");
         } else {
           await prisma.user.update({
             where: { id: user.id },
@@ -45,8 +45,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           });
 
           return {
-            id: user.id + '',
-            name: user.name,
+            id: user.id + "",
+            name: user.first_name,
             email: user.email,
           };
         }
@@ -54,7 +54,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   pages: {
-    signIn: '/login',
+    signIn: "/login",
   },
-  session: { strategy: 'jwt' },
+  session: { strategy: "jwt" },
 });
