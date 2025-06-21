@@ -142,11 +142,9 @@ CREATE TABLE "job_position" (
     "alba_id" TEXT,
     "heltes_id" TEXT,
     "organization_id" TEXT,
-    "name" TEXT NOT NULL,
+    "name" TEXT,
     "description" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL,
-    "divisionId" UUID NOT NULL,
-    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "job_position_pkey" PRIMARY KEY ("id")
 );
