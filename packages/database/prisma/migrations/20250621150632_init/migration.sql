@@ -51,7 +51,7 @@ CREATE TABLE "user" (
     "first_name" TEXT,
     "last_name" TEXT,
     "organization_id" TEXT,
-    "sms_code" VARCHAR(20),
+    "sms_code" TEXT,
     "sms_active" TIMESTAMP(3),
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
@@ -184,6 +184,14 @@ CREATE TABLE "section" (
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "section_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Profile" (
+    "id" UUID NOT NULL,
+    "userId" TEXT,
+
+    CONSTRAINT "Profile_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
