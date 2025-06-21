@@ -65,7 +65,7 @@ const data = {
         },
         {
           title: "Шинэ журам нэмэх",
-          url: "/policy/new",
+          url: "/dashboard/policy/new",
         },
         {
           title: "Ангилал",

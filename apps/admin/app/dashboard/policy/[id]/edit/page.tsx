@@ -4,8 +4,8 @@ import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { notFound } from "next/navigation";
 import { toast } from "react-toastify";
-import PolicyFormWithPositionLink from "@/components/PolicyFromWithPositionLink";
-import { type_clause_position } from "@repo/database/generated/prisma/client/client";
+import PolicyEditerForm from "@/components/PolicyEditerForm";
+import { type_clause_job_position } from "@repo/database/generated/prisma/client/client";
 
 interface Clause {
   id: string;
@@ -14,7 +14,7 @@ interface Clause {
   sectionId: string;
   parentId: string | null;
   children?: Clause[];
-  clause_position?: { positionId: string; type: type_clause_position }[];
+  clause_position?: { positionId: string; type: type_clause_job_position }[];
 }
 
 interface Section {
@@ -85,7 +85,7 @@ export default function PolicyEditPageWithPositionLink({
   }
 
   return (
-    <PolicyFormWithPositionLink
+    <PolicyEditerForm
       initialData={{
         id: policy.id,
         name: policy.name || "",
@@ -109,11 +109,11 @@ export default function PolicyEditPageWithPositionLink({
       }}
       onSuccess={() => {
         console.log("Policy updated:", { policyId: policy.id });
-        router.push(`/policy/${policy.id}`);
+        router.push(`/dashboard/policy/${policy.id}`);
       }}
       onCancel={() => {
         console.log("Edit mode cancelled:", { policyId: policy.id });
-        router.push(`/policy/${policy.id}`);
+        router.push(`/dashboard/policy/${policy.id}`);
       }}
     />
   );

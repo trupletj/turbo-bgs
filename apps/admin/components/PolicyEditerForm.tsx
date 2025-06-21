@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import ClauseItemWithPositionLink from "./ClauseItemWithPositionLink";
-import { type_clause_position } from "@repo/database/generated/prisma/client/client";
+import ClauseItem from "./ClauseItem";
+import { type_clause_job_position } from "@repo/database/generated/prisma/client/client";
 
 interface Clause {
   id: string;
@@ -15,7 +15,7 @@ interface Clause {
   text: string;
   parentId?: string | null;
   children?: Clause[];
-  positions?: { positionId: string; type: type_clause_position }[]; // ШИНЭ
+  positions?: { positionId: string; type: type_clause_job_position }[];
 }
 
 interface Section {
@@ -43,7 +43,7 @@ interface PolicyFormProps {
   onCancel: () => void;
 }
 
-export default function PolicyFormWithPositionLink({
+export default function PolicyEditerForm({
   initialData,
   onSuccess,
   onCancel,
@@ -75,47 +75,31 @@ export default function PolicyFormWithPositionLink({
   }, [isProcessing, sections.length]);
 
   const deleteSection = useCallback(
-    async (sectionIndex: number) => {
+    (sectionIndex: number) => {
       if (!confirm("Бүлгийг устгахдаа итгэлтэй байна уу?")) return;
       setIsProcessing(true);
-      try {
-        const section = sections[sectionIndex];
-        console.log("Deleting section:", { sectionId: section.id });
-        if (!section.id.startsWith("temp-")) {
-          const response = await fetch(`/api/section?id=${section.id}`, {
-            method: "DELETE",
-          });
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || "Бүлэг устгахад алдаа гарлаа");
-          }
-        }
-        setSections((prev) =>
-          prev
-            .filter((_, idx) => idx !== sectionIndex)
-            .map((s, idx) => ({
-              ...s,
-              referenceNumber: `${idx + 1}`,
-              clauses: s.clauses.map((c, cIdx) => ({
-                ...c,
-                referenceNumber: `${idx + 1}.${cIdx + 1}`,
-                children: updateClauseNumbers(
-                  c.children ?? [],
-                  `${idx + 1}.${cIdx + 1}`
-                ),
-              })),
-            }))
-        );
-        toast.success("Бүлэг амжилттай устгагдлаа");
-        console.log("Section deleted:", { sectionId: section.id });
-      } catch (error) {
-        console.error("Delete section error:", error);
-        toast.error(`Алдаа: ${(error as Error).message}`);
-      } finally {
-        setIsProcessing(false);
-      }
+      setSections((prev) => {
+        const section = prev[sectionIndex];
+        console.log("Deleting section (UI only):", { sectionId: section.id });
+        return prev
+          .filter((_, idx) => idx !== sectionIndex)
+          .map((s, idx) => ({
+            ...s,
+            referenceNumber: `${idx + 1}`,
+            clauses: s.clauses.map((c, cIdx) => ({
+              ...c,
+              referenceNumber: `${idx + 1}.${cIdx + 1}`,
+              children: updateClauseNumbers(
+                c.children ?? [],
+                `${idx + 1}.${cIdx + 1}`
+              ),
+            })),
+          }));
+      });
+      console.log("Section deleted (UI only)");
+      setIsProcessing(false);
     },
-    [sections, isProcessing]
+    [isProcessing]
   );
 
   const addClause = useCallback(
@@ -130,7 +114,7 @@ export default function PolicyFormWithPositionLink({
           text: "",
           referenceNumber: `${section.referenceNumber}.${section.clauses.length + 1}`,
           children: [],
-          positions: [], // ШИНЭ
+          positions: [],
         };
         section.clauses = [...section.clauses, newClause];
         console.log("New clause added:", {
@@ -161,7 +145,7 @@ export default function PolicyFormWithPositionLink({
           text: "",
           referenceNumber: `${parentClause.referenceNumber}.${(parentClause.children?.length ?? 0) + 1}`,
           children: [],
-          positions: [], // ШИНЭ
+          positions: [],
         };
         parentClause.children = [
           ...(parentClause.children ?? []),
@@ -223,7 +207,7 @@ export default function PolicyFormWithPositionLink({
     (
       sectionIndex: number,
       path: number[],
-      positions: { positionId: string; type: type_clause_position }[]
+      positions: { positionId: string; type: type_clause_job_position }[]
     ) => {
       setSections((prev) => {
         const newSections = JSON.parse(JSON.stringify(prev));
@@ -346,21 +330,33 @@ export default function PolicyFormWithPositionLink({
         }
       });
 
+      // Устгагдсан бүлгүүдийг сервер рүү илгээх
       for (const deletedSection of deletedSections) {
         if (!deletedSection.id.startsWith("temp-")) {
-          console.log("Deleting section and its clauses:", {
+          console.log("Deleting section on server:", {
             sectionId: deletedSection.id,
           });
-          await fetch(`/api/section?id=${deletedSection.id}`, {
+          const response = await fetch(`/api/section?id=${deletedSection.id}`, {
             method: "DELETE",
           });
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Бүлэг устгахад алдаа гарлаа");
+          }
         }
       }
 
+      // Устгагдсан заалтуудыг сервер рүү илгээх
       for (const { clauseId } of deletedClauses) {
         if (!clauseId.startsWith("temp-")) {
-          console.log("Deleting clause:", { clauseId });
-          await fetch(`/api/clause?id=${clauseId}`, { method: "DELETE" });
+          console.log("Deleting clause on server:", { clauseId });
+          const response = await fetch(`/api/clause?id=${clauseId}`, {
+            method: "DELETE",
+          });
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Заалт устгахад алдаа гарлаа");
+          }
         }
       }
 
@@ -423,7 +419,7 @@ export default function PolicyFormWithPositionLink({
                 text: clause.text,
                 referenceNumber: clause.referenceNumber,
                 parentId,
-                positions: clause.positions, // ШИНЭ
+                positions: clause.positions,
               }),
             });
             if (!clauseResponse.ok) {
@@ -603,7 +599,7 @@ export default function PolicyFormWithPositionLink({
                 </div>
 
                 {section.clauses.map((clause, clauseIndex) => (
-                  <ClauseItemWithPositionLink
+                  <ClauseItem
                     key={clause.id}
                     sectionIndex={sectionIndex}
                     clause={clause}

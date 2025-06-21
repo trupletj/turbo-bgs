@@ -32,6 +32,7 @@ model organization {
 }
 
 
+
 model user {
   id              String   @id @default(uuid()) @db.Uuid
   bteg_id         String   @unique
@@ -40,7 +41,7 @@ model user {
   idcard_number   String?
   is_active       Boolean?
   address         String?
-  register_number String?
+  register_number String? @unique
   gazar_id        String?
   alba_id         String?
   heltes_id       String?
@@ -52,17 +53,14 @@ model user {
   last_name       String?
   organization_id String?
 
+  sms_code                String?   @db.VarChar(20)
+  sms_active              DateTime?
+
   gazar       gazar? @relation(fields: [gazar_id], references: [bteg_id], name: "gazar_ajilchid")
   heltes       heltes? @relation(fields: [heltes_id], references: [bteg_id], name: "heltes_ajilchid")
   alba       alba? @relation(fields: [alba_id], references: [bteg_id], name: "alba_ajilchid")
 
   job_position job_position? @relation(fields: [job_position_id], references: [bteg_id])
-}
-
-model Test{
-
-  id        String @id @db.Uuid
-  name      String? 
 }
 
 // //g_department

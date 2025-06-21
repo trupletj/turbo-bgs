@@ -51,6 +51,8 @@ CREATE TABLE "user" (
     "first_name" TEXT,
     "last_name" TEXT,
     "organization_id" TEXT,
+    "sms_code" VARCHAR(20),
+    "sms_active" TIMESTAMP(3),
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
 );
@@ -192,6 +194,9 @@ CREATE UNIQUE INDEX "organization_bteg_id_key" ON "organization"("bteg_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_bteg_id_key" ON "user"("bteg_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_register_number_key" ON "user"("register_number");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "alba_bteg_id_key" ON "alba"("bteg_id");

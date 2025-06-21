@@ -98,12 +98,12 @@ export default function PolicyDetailPage({ params }: PolicyDetailPageProps) {
       <div className="flex justify-between mb-6">
         <h1 className="text-2xl font-bold">{policy.name}</h1>
         <div>
-          <Link href="/">
+          <Link href="/dashboard/policy">
             <Button variant="outline" className="mr-2">
               Буцах
             </Button>
           </Link>
-          <Link href={`/policy/${policy.id}/edit`}>
+          <Link href={`/dashboard/policy/${policy.id}/edit`}>
             <Button>Засварлах</Button>
           </Link>
         </div>

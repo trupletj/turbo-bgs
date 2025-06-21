@@ -117,7 +117,7 @@ export default function PolicyList() {
                   {" "}
                   {/* Үйлдлийн товчнууд */}
                   <div className="flex gap-1">
-                    <Link href={`/policy/${policy.id}`}>
+                    <Link href={`/dashboard/policy/${policy.id}`}>
                       <Button variant="outline" size="sm" className="h-8">
                         Харах
                       </Button>
