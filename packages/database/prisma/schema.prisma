@@ -226,3 +226,9 @@ model Profile {
   id      String  @id @default(uuid()) @db.Uuid
   userId  String?
 }
+
+
+model test {
+  id      String  @id @default(uuid()) @db.Uuid
+  userId  String?
+}
