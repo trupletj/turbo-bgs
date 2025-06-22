@@ -37,6 +37,3 @@ yarn-error.log*
 .DS_Store
 *.pem
 
-
-# pm2 config file ignore
-./ecosystem.config.js
