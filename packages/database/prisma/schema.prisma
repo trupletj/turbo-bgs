@@ -164,7 +164,7 @@ model job_position {
   name            String?
   description String?
   created_at DateTime
-  
+  is_active   Boolean?  
 
   gazar gazar? @relation(fields: [gazar_id], references: [bteg_id])
   alba alba? @relation(fields: [alba_id], references: [bteg_id])
