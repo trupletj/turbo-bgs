@@ -1,16 +1,9 @@
 "use client";
 
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Clause } from "@/types/clause";
 import { type_clause_job_position } from "@repo/database/generated/prisma/client/client";
-
-interface Clause {
-  id: string;
-  referenceNumber: string;
-  text: string;
-  parentId?: string | null;
-  children?: Clause[];
-  positions?: { positionId: string; type: type_clause_job_position }[];
-}
 
 interface ClauseItemProps {
   sectionIndex: number;
@@ -56,43 +49,29 @@ export default function ClauseItem({
           className="flex-1 p-2 border rounded"
           disabled={isProcessing}
         />
-        <button
+        <Button
           type="button"
+          variant="secondary"
           onClick={() => addSubClause(sectionIndex, path)}
           disabled={isProcessing}
-          className={`px-3 py-1 bg-green-600 text-white rounded hover:bg-green-500 ${
-            isProcessing ? "opacity-50 cursor-not-allowed" : ""
-          }`}
         >
           + Дэд заалт
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="destructive"
           onClick={() => deleteClause(sectionIndex, path)}
           disabled={isProcessing}
-          className={`px-3 py-1 bg-red-600 text-white rounded hover:bg-red-500 ${
-            isProcessing ? "opacity-50 cursor-not-allowed" : ""
-          }`}
         >
           - Устгах
-        </button>
-      </div>
-
-      <div className="ml-6 mt-2">
-        {
-          <div className="mt-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Ажлын байр сонгох
-            </label>
-          </div>
-        }
+        </Button>
       </div>
 
       {clause.children &&
         clause.children.length > 0 &&
         clause.children.map((child, index) => (
           <ClauseItem
-            key={child.id}
+            key={child.id || `${sectionIndex}-${path.join("-")}-${index}`}
             sectionIndex={sectionIndex}
             clause={child}
             clauseIndex={index}
