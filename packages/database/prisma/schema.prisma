@@ -125,9 +125,11 @@ model clause {
   sectionId       String            @db.Uuid 
   parentId        String?           @db.Uuid
   isDeleted       Boolean           @default(false)
+  policy_id       String?  @db.Uuid
   clause          clause?           @relation("clauseToclause", fields: [parentId], references: [id], onUpdate: NoAction)
   other_clause    clause[]          @relation("clauseToclause")
   section         section           @relation(fields: [sectionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  policy  policy? @relation(fields: [policy_id], references: [id])
   clause_job_position clause_job_position[]
 }
 
@@ -149,6 +151,7 @@ model policy {
   referenceCode String    @unique @db.VarChar(255)
   isDeleted     Boolean   @default(false)
   section       section[]
+  clause clause[]
 }
 
 model job_position {
