@@ -4,32 +4,33 @@ import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { notFound } from "next/navigation";
 import PolicyEditerForm from "@/components/PolicyEditerForm";
+import { Clause } from "@/types/clause";
 import { type_clause_job_position } from "@repo/database/generated/prisma/client/client";
-
-interface Clause {
-  id: string;
-  referenceNumber: string;
-  text: string;
-  sectionId: string;
-  parentId: string | null;
-  children?: Clause[];
-  clause_position?: { positionId: string; type: type_clause_job_position }[];
-}
-
-interface Section {
-  id: string;
-  referenceNumber: string;
-  text?: string | null;
-  policyId: string;
-  clause?: Clause[];
-}
 
 interface Policy {
   id: string;
   name: string | null;
   referenceCode: string | null;
   approvedDate: string | null;
-  section?: Section[];
+  section?: Array<{
+    id: string;
+    referenceNumber: string;
+    text?: string | null;
+    policyId: string;
+    clause?: Array<{
+      id: string;
+      referenceNumber: string;
+      text: string;
+      sectionId: string;
+      parentId: string | null;
+      policyId: string | null; // Шинэ талбар
+      children?: Clause[];
+      clause_position?: {
+        positionId: string;
+        type: type_clause_job_position;
+      }[];
+    }>;
+  }>;
 }
 
 interface PolicyEditPageProps {
@@ -76,7 +77,7 @@ export default function PolicyEditPageWithPositionLink({
   };
 
   if (isLoading) {
-    return <div className="text-center py-8">Ачааллаж байна...</div>;
+    return <div className="text-center py-8">Ачаалж байна...</div>;
   }
 
   if (!policy) {
@@ -94,15 +95,18 @@ export default function PolicyEditPageWithPositionLink({
           : null,
         sections: (policy.section ?? []).map((s) => ({
           id: s.id,
+          policyId: s.policyId, // Шинэ талбар
           referenceNumber: s.referenceNumber,
           text: s.text || "",
           clauses: (s.clause ?? []).map((c) => ({
             id: c.id,
+            policyId: c.policyId || policy.id, // Серверээс ирсэн policyId эсвэл policy.id
             referenceNumber: c.referenceNumber,
             text: c.text,
+            sectionId: c.sectionId,
             parentId: c.parentId,
             children: c.children ?? [],
-            positions: c.clause_position ?? [], // ШИНЭ
+            positions: c.clause_position ?? [],
           })),
         })),
       }}

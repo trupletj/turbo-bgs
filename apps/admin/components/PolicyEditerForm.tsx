@@ -24,13 +24,16 @@ interface PolicyFormProps {
     referenceCode: string;
     approvedDate: Date | null;
     sections: Array<{
-      id: string; // Серверээс ирсэн тул заавал string
+      id: string;
+      policyId?: string; // Шинэ талбар
       referenceNumber: string;
       text: string;
       clauses: Array<{
-        id: string; // Серверээс ирсэн тул заавал string
+        id: string;
+        policyId?: string; // Шинэ талбар
         referenceNumber: string;
         text: string;
+        sectionId?: string;
         parentId?: string | null;
         children?: Clause[];
         positions?: { positionId: string; type: type_clause_job_position }[];
@@ -52,7 +55,14 @@ export default function PolicyEditerForm({
     approvedDate: initialData?.approvedDate || null,
   });
   const [sections, setSections] = useState<Section[]>(
-    initialData?.sections || []
+    initialData?.sections.map((s) => ({
+      ...s,
+      policyId: s.policyId || initialData.id, // policyId-г оруулах
+      clauses: s.clauses.map((c) => ({
+        ...c,
+        policyId: c.policyId || initialData.id, // policyId-г оруулах
+      })),
+    })) || []
   );
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -64,10 +74,11 @@ export default function PolicyEditerForm({
         referenceNumber: `${prev.length + 1}`,
         text: "",
         clauses: [],
+        policyId: initialData?.id, // Шинэ section-д policyId
       },
     ]);
     console.log("New section added:", { totalSections: sections.length + 1 });
-  }, [isProcessing, sections.length]);
+  }, [isProcessing, sections.length, initialData?.id]);
 
   const deleteSection = useCallback((sectionIndex: number) => {
     if (!confirm("Бүлгийг устгахдаа итгэлтэй байна уу?")) return;
@@ -103,6 +114,8 @@ export default function PolicyEditerForm({
         const newClause: Clause = {
           text: "",
           referenceNumber: `${section.referenceNumber}.${section.clauses.length + 1}`,
+          sectionId: section.id,
+          policyId: section.policyId, // Шинэ clause-д policyId
           children: [],
           positions: [],
         };
@@ -131,6 +144,8 @@ export default function PolicyEditerForm({
         const newSubClause: Clause = {
           text: "",
           referenceNumber: `${parentClause.referenceNumber}.${(parentClause.children?.length ?? 0) + 1}`,
+          sectionId: section.id,
+          policyId: section.policyId, // Шинэ sub-clause-д policyId
           children: [],
           positions: [],
         };
@@ -395,6 +410,7 @@ export default function PolicyEditerForm({
                 clause.text.substring(0, 20) +
                 (clause.text.length > 20 ? "..." : ""),
               parentId,
+              policyId,
               positions: clause.positions?.length || 0,
             });
 
@@ -406,6 +422,7 @@ export default function PolicyEditerForm({
                 text: clause.text,
                 referenceNumber: clause.referenceNumber,
                 parentId,
+                policyId, // Шинэ талбар
                 positions: clause.positions,
               }),
             });

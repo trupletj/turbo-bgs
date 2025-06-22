@@ -8,18 +8,7 @@ import { toast } from "react-toastify";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Button } from "@/components/ui/button";
-
-interface Clause {
-  referenceNumber: string;
-  text: string;
-  children?: Clause[];
-}
-
-interface Section {
-  referenceNumber: string;
-  text: string;
-  clauses: Clause[];
-}
+import { Clause, Section } from "@/types/clause";
 
 interface Policy {
   name: string;
@@ -88,7 +77,10 @@ const ClauseItem = ({
         <div className="ml-6 mt-2">
           {clause.children.map((subClause, subClauseIndex) => (
             <ClauseItem
-              key={`${sectionIndex}-${path.join("-")}-${subClauseIndex}`}
+              key={
+                subClause.id ||
+                `${sectionIndex}-${path.join("-")}-${subClauseIndex}`
+              }
               sectionIndex={sectionIndex}
               clause={subClause}
               clauseIndex={subClauseIndex}
@@ -163,7 +155,7 @@ const NewPolicy = () => {
     (sectionIndex: number) => {
       if (isProcessing) return;
       setPolicyData((prev) => {
-        const newSections = JSON.parse(JSON.stringify(prev.sections)); // Deep copy
+        const newSections = JSON.parse(JSON.stringify(prev.sections));
         const section = newSections[sectionIndex];
         const newClause: Clause = {
           text: "",
@@ -182,7 +174,7 @@ const NewPolicy = () => {
     (sectionIndex: number, path: number[]) => {
       if (isProcessing) return;
       setPolicyData((prev) => {
-        const newSections = JSON.parse(JSON.stringify(prev.sections)); // Deep copy
+        const newSections = JSON.parse(JSON.stringify(prev.sections));
         const section = newSections[sectionIndex];
         let current = section.clauses;
         for (let i = 0; i < path.length - 1; i++) {
@@ -221,7 +213,7 @@ const NewPolicy = () => {
     (sectionIndex: number, path: number[], text: string) => {
       if (isProcessing) return;
       setPolicyData((prev) => {
-        const newSections = JSON.parse(JSON.stringify(prev.sections)); // Deep copy
+        const newSections = JSON.parse(JSON.stringify(prev.sections));
         const section = newSections[sectionIndex];
         let current = section.clauses;
         for (let i = 0; i < path.length - 1; i++) {
@@ -242,7 +234,7 @@ const NewPolicy = () => {
     (sectionIndex: number, path: number[]) => {
       if (isProcessing) return;
       setPolicyData((prev) => {
-        const newSections = JSON.parse(JSON.stringify(prev.sections)); // Deep copy
+        const newSections = JSON.parse(JSON.stringify(prev.sections));
         const section = newSections[sectionIndex];
         let current = section.clauses;
         for (let i = 0; i < path.length - 1; i++) {
@@ -289,7 +281,6 @@ const NewPolicy = () => {
     const toastId = toast.loading("Журам хадгалж байна...");
 
     try {
-      // Валидаци
       if (!policyData.name || !policyData.referenceCode) {
         throw new Error("Журмын нэр болон дугаар заавал оруулна уу");
       }
@@ -344,6 +335,7 @@ const NewPolicy = () => {
                 referenceNumber: clause.referenceNumber,
                 sectionId,
                 parentId,
+                policyId, // Шинэ талбар
               }),
             });
 
@@ -464,7 +456,10 @@ const NewPolicy = () => {
           </div>
 
           {policyData.sections.map((section, sectionIndex) => (
-            <div key={sectionIndex} className="mt-4 p-4 border rounded">
+            <div
+              key={section.id || sectionIndex}
+              className="mt-4 p-4 border rounded"
+            >
               <div className="flex items-center gap-4">
                 <span className="font-bold">{section.referenceNumber}.</span>
                 <Textarea
@@ -500,7 +495,7 @@ const NewPolicy = () => {
 
                 {section.clauses.map((clause, clauseIndex) => (
                   <ClauseItem
-                    key={`${sectionIndex}-${clauseIndex}`}
+                    key={clause.id || `${sectionIndex}-${clauseIndex}`}
                     sectionIndex={sectionIndex}
                     clause={clause}
                     clauseIndex={clauseIndex}

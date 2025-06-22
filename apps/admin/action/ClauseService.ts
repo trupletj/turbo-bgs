@@ -1,10 +1,10 @@
 "use server";
 
-import { Clause } from "@/types";
+import { Clause } from "@/types/clause";
 import { prisma } from "@repo/database";
 
 export const createClause = async (
-  data: Omit<Clause, "id" | "isDeleted" | "children">
+  data: Omit<Clause, "id" | "isDeleted" | "children"> & { policyId: string }
 ) => {
   try {
     if (data.sectionId) {
@@ -15,6 +15,7 @@ export const createClause = async (
         throw new Error("Холбогдох бүлэг олдсонгүй");
       }
     }
+    // Валидаци: parentId
     if (data.parentId) {
       const parent = await prisma.clause.findFirst({
         where: { id: data.parentId, isDeleted: false },
@@ -23,13 +24,21 @@ export const createClause = async (
         throw new Error("Холбогдох эцэг заалт олдсонгүй");
       }
     }
+    // Валидаци: policyId
+    const policy = await prisma.policy.findFirst({
+      where: { id: data.policyId, isDeleted: false },
+    });
+    if (!policy) {
+      throw new Error("Холбогдох журам олдсонгүй");
+    }
 
     return await prisma.clause.create({
       data: {
         text: data.text,
         referenceNumber: data.referenceNumber,
-        sectionId: data.sectionId,
+        sectionId: data.sectionId!,
         parentId: data.parentId,
+        policyId: data.policyId, // Шинэ талбар
         isDeleted: false,
       },
     });
@@ -50,6 +59,7 @@ export const getClause = async (id: string) => {
       },
       include: {
         section: true,
+        policy: true, // Журмын мэдээллийг авах
         clause_job_position: {
           include: {
             job_position: true,
@@ -71,6 +81,7 @@ export const getAllClauses = async (sectionId?: string) => {
     return await prisma.clause.findMany({
       where: { sectionId: sectionId || undefined, isDeleted: false },
       include: {
+        policy: true, // Журмын мэдээллийг авах
         clause_job_position: {
           include: { job_position: true },
         },
@@ -85,9 +96,12 @@ export const getAllClauses = async (sectionId?: string) => {
 
 export const updateClause = async (
   id: string,
-  data: Partial<Omit<Clause, "id" | "isDeleted" | "children">>
+  data: Partial<Omit<Clause, "id" | "isDeleted" | "children">> & {
+    policyId?: string;
+  }
 ) => {
   try {
+    // Валидаци: sectionId
     if (data.sectionId) {
       const section = await prisma.section.findFirst({
         where: { id: data.sectionId, isDeleted: false },
@@ -96,12 +110,22 @@ export const updateClause = async (
         throw new Error("Холбогдох бүлэг олдсонгүй");
       }
     }
+    // Валидаци: parentId
     if (data.parentId) {
       const parent = await prisma.clause.findFirst({
         where: { id: data.parentId, isDeleted: false },
       });
       if (!parent) {
         throw new Error("Холбогдох эцэг заалт олдсонгүй");
+      }
+    }
+    // Валидаци: policyId
+    if (data.policyId) {
+      const policy = await prisma.policy.findFirst({
+        where: { id: data.policyId, isDeleted: false },
+      });
+      if (!policy) {
+        throw new Error("Холбогдох журам олдсонгүй");
       }
     }
 
@@ -112,6 +136,7 @@ export const updateClause = async (
         referenceNumber: data.referenceNumber ?? undefined,
         sectionId: data.sectionId ?? undefined,
         parentId: data.parentId ?? undefined,
+        policyId: data.policyId ?? undefined, // Шинэ талбар
       },
     });
   } catch (error) {
