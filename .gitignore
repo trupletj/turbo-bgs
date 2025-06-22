@@ -39,4 +39,4 @@ yarn-error.log*
 
 
 # pm2 config file ignore
-ecosystem.config.js
+./ecosystem.config.js
