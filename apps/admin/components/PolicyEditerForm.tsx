@@ -6,24 +6,10 @@ import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { Button } from "@/components/ui/button";
 import ClauseItem from "./ClauseItem";
+import { Clause, Section } from "@/types/clause";
 import { type_clause_job_position } from "@repo/database/generated/prisma/client/client";
-
-interface Clause {
-  id: string;
-  referenceNumber: string;
-  text: string;
-  parentId?: string | null;
-  children?: Clause[];
-  positions?: { positionId: string; type: type_clause_job_position }[];
-}
-
-interface Section {
-  id: string;
-  referenceNumber: string;
-  text: string;
-  clauses: Clause[];
-}
 
 interface PolicyFormData {
   name: string;
@@ -37,7 +23,19 @@ interface PolicyFormProps {
     name: string;
     referenceCode: string;
     approvedDate: Date | null;
-    sections: Section[];
+    sections: Array<{
+      id: string; // Серверээс ирсэн тул заавал string
+      referenceNumber: string;
+      text: string;
+      clauses: Array<{
+        id: string; // Серверээс ирсэн тул заавал string
+        referenceNumber: string;
+        text: string;
+        parentId?: string | null;
+        children?: Clause[];
+        positions?: { positionId: string; type: type_clause_job_position }[];
+      }>;
+    }>;
   };
   onSuccess: () => void;
   onCancel: () => void;
@@ -60,57 +58,49 @@ export default function PolicyEditerForm({
 
   const addSection = useCallback(() => {
     if (isProcessing) return;
-    setIsProcessing(true);
     setSections((prev) => [
       ...prev,
       {
-        id: `temp-${crypto.randomUUID()}`,
         referenceNumber: `${prev.length + 1}`,
         text: "",
         clauses: [],
       },
     ]);
     console.log("New section added:", { totalSections: sections.length + 1 });
-    setIsProcessing(false);
   }, [isProcessing, sections.length]);
 
-  const deleteSection = useCallback(
-    (sectionIndex: number) => {
-      if (!confirm("Бүлгийг устгахдаа итгэлтэй байна уу?")) return;
-      setIsProcessing(true);
-      setSections((prev) => {
-        const section = prev[sectionIndex];
-        console.log("Deleting section (UI only):", { sectionId: section.id });
-        return prev
-          .filter((_, idx) => idx !== sectionIndex)
-          .map((s, idx) => ({
-            ...s,
-            referenceNumber: `${idx + 1}`,
-            clauses: s.clauses.map((c, cIdx) => ({
-              ...c,
-              referenceNumber: `${idx + 1}.${cIdx + 1}`,
-              children: updateClauseNumbers(
-                c.children ?? [],
-                `${idx + 1}.${cIdx + 1}`
-              ),
-            })),
-          }));
+  const deleteSection = useCallback((sectionIndex: number) => {
+    if (!confirm("Бүлгийг устгахдаа итгэлтэй байна уу?")) return;
+    setSections((prev) => {
+      const section = prev[sectionIndex];
+      console.log("Deleting section (UI only):", {
+        sectionId: section.id || `index-${sectionIndex}`,
       });
-      console.log("Section deleted (UI only)");
-      setIsProcessing(false);
-    },
-    [isProcessing]
-  );
+      return prev
+        .filter((_, idx) => idx !== sectionIndex)
+        .map((s, idx) => ({
+          ...s,
+          referenceNumber: `${idx + 1}`,
+          clauses: s.clauses.map((c, cIdx) => ({
+            ...c,
+            referenceNumber: `${idx + 1}.${cIdx + 1}`,
+            children: updateClauseNumbers(
+              c.children ?? [],
+              `${idx + 1}.${cIdx + 1}`
+            ),
+          })),
+        }));
+    });
+    console.log("Section deleted (UI only)");
+  }, []);
 
   const addClause = useCallback(
     (sectionIndex: number) => {
       if (isProcessing) return;
-      setIsProcessing(true);
       setSections((prev) => {
         const newSections = JSON.parse(JSON.stringify(prev));
         const section = newSections[sectionIndex];
         const newClause: Clause = {
-          id: `temp-${crypto.randomUUID()}`,
           text: "",
           referenceNumber: `${section.referenceNumber}.${section.clauses.length + 1}`,
           children: [],
@@ -123,7 +113,6 @@ export default function PolicyEditerForm({
         });
         return newSections;
       });
-      setIsProcessing(false);
     },
     [isProcessing]
   );
@@ -131,7 +120,6 @@ export default function PolicyEditerForm({
   const addSubClause = useCallback(
     (sectionIndex: number, path: number[]) => {
       if (isProcessing) return;
-      setIsProcessing(true);
       setSections((prev) => {
         const newSections = JSON.parse(JSON.stringify(prev));
         const section = newSections[sectionIndex];
@@ -141,7 +129,6 @@ export default function PolicyEditerForm({
         }
         const parentClause = current[path[path.length - 1]];
         const newSubClause: Clause = {
-          id: `temp-${crypto.randomUUID()}`,
           text: "",
           referenceNumber: `${parentClause.referenceNumber}.${(parentClause.children?.length ?? 0) + 1}`,
           children: [],
@@ -157,7 +144,6 @@ export default function PolicyEditerForm({
         });
         return newSections;
       });
-      setIsProcessing(false);
     },
     [isProcessing]
   );
@@ -180,7 +166,6 @@ export default function PolicyEditerForm({
   const updateClauseText = useCallback(
     (sectionIndex: number, path: number[], text: string) => {
       if (isProcessing) return;
-      setIsProcessing(true);
       setSections((prev) => {
         const newSections = JSON.parse(JSON.stringify(prev));
         const section = newSections[sectionIndex];
@@ -198,7 +183,6 @@ export default function PolicyEditerForm({
         });
         return newSections;
       });
-      setIsProcessing(false);
     },
     [isProcessing]
   );
@@ -233,7 +217,6 @@ export default function PolicyEditerForm({
   const deleteClause = useCallback(
     (sectionIndex: number, path: number[]) => {
       if (isProcessing) return;
-      setIsProcessing(true);
       setSections((prev) => {
         const newSections = JSON.parse(JSON.stringify(prev));
         const section = newSections[sectionIndex];
@@ -262,7 +245,6 @@ export default function PolicyEditerForm({
         });
         return newSections;
       });
-      setIsProcessing(false);
     },
     [isProcessing]
   );
@@ -284,8 +266,14 @@ export default function PolicyEditerForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
+    const toastId = toast.loading("Журам хадгалж байна...");
 
     try {
+      // Валидаци
+      if (!policyData.name || !policyData.referenceCode) {
+        throw new Error("Журмын нэр болон дугаар заавал оруулна уу");
+      }
+
       const method = initialData ? "PUT" : "POST";
       const url = initialData
         ? `/api/policy?id=${initialData.id}`
@@ -316,11 +304,14 @@ export default function PolicyEditerForm({
       const deletedClauses: { sectionId: string; clauseId: string }[] = [];
       initialData?.sections.forEach((initSection) => {
         const currentSection = sections.find((s) => s.id === initSection.id);
-        if (currentSection) {
+        if (currentSection && initSection.id) {
           const initClauses = initSection.clauses;
           const currentClauses = currentSection.clauses;
           initClauses.forEach((initClause) => {
-            if (!currentClauses.find((c) => c.id === initClause.id)) {
+            if (
+              initClause.id &&
+              !currentClauses.find((c) => c.id === initClause.id)
+            ) {
               deletedClauses.push({
                 sectionId: initSection.id,
                 clauseId: initClause.id,
@@ -332,7 +323,7 @@ export default function PolicyEditerForm({
 
       // Устгагдсан бүлгүүдийг сервер рүү илгээх
       for (const deletedSection of deletedSections) {
-        if (!deletedSection.id.startsWith("temp-")) {
+        if (deletedSection.id) {
           console.log("Deleting section on server:", {
             sectionId: deletedSection.id,
           });
@@ -348,27 +339,24 @@ export default function PolicyEditerForm({
 
       // Устгагдсан заалтуудыг сервер рүү илгээх
       for (const { clauseId } of deletedClauses) {
-        if (!clauseId.startsWith("temp-")) {
-          console.log("Deleting clause on server:", { clauseId });
-          const response = await fetch(`/api/clause?id=${clauseId}`, {
-            method: "DELETE",
-          });
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || "Заалт устгахад алдаа гарлаа");
-          }
+        console.log("Deleting clause on server:", { clauseId });
+        const response = await fetch(`/api/clause?id=${clauseId}`, {
+          method: "DELETE",
+        });
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || "Заалт устгахад алдаа гарлаа");
         }
       }
 
       for (const section of sections) {
-        const sectionMethod = section.id.startsWith("temp-") ? "POST" : "PUT";
-        const sectionUrl =
-          sectionMethod === "POST"
-            ? `/api/section`
-            : `/api/section?id=${section.id}`;
+        const sectionMethod = section.id ? "PUT" : "POST";
+        const sectionUrl = section.id
+          ? `/api/section?id=${section.id}`
+          : `/api/section`;
 
         console.log("Submitting section:", {
-          sectionId: section.id,
+          sectionId: section.id || "new",
           referenceNumber: section.referenceNumber,
           text:
             section.text.substring(0, 20) +
@@ -395,14 +383,13 @@ export default function PolicyEditerForm({
           parentId: string | null = null
         ) => {
           for (const clause of clauses) {
-            const clauseMethod = clause.id.startsWith("temp-") ? "POST" : "PUT";
-            const clauseUrl =
-              clauseMethod === "POST"
-                ? `/api/clause`
-                : `/api/clause?id=${clause.id}`;
+            const clauseMethod = clause.id ? "PUT" : "POST";
+            const clauseUrl = clause.id
+              ? `/api/clause?id=${clause.id}`
+              : `/api/clause`;
 
             console.log("Submitting clause:", {
-              clauseId: clause.id,
+              clauseId: clause.id || "new",
               referenceNumber: clause.referenceNumber,
               text:
                 clause.text.substring(0, 20) +
@@ -437,14 +424,22 @@ export default function PolicyEditerForm({
         await saveClauses(section.clauses);
       }
 
-      toast.success(
-        `Журам амжилттай ${initialData ? "засварлагдлаа" : "хадгалагдлаа"}`
-      );
+      toast.update(toastId, {
+        render: `Журам амжилттай ${initialData ? "засварлагдлаа" : "хадгалагдлаа"}`,
+        type: "success",
+        isLoading: false,
+        autoClose: 1000,
+      });
       console.log("Form submission successful");
       onSuccess();
     } catch (error) {
       console.error("Submission error:", error);
-      throw error;
+      toast.update(toastId, {
+        render: `Алдаа: ${(error as Error).message}`,
+        type: "error",
+        isLoading: false,
+        autoClose: 5000,
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -457,28 +452,20 @@ export default function PolicyEditerForm({
           <h1 className="text-2xl font-bold">
             {initialData ? "Журам Засварлах" : "Шинэ Журам Үүсгэх"}
           </h1>
-          <div>
+          <div className="flex gap-2">
             {initialData && (
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={onCancel}
                 disabled={isProcessing}
-                className={`px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 mr-2 ${
-                  isProcessing ? "opacity-50 cursor-not-allowed" : ""
-                }`}
               >
                 Цуцлах
-              </button>
+              </Button>
             )}
-            <button
-              type="submit"
-              disabled={isProcessing}
-              className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 ${
-                isProcessing ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            >
+            <Button type="submit" disabled={isProcessing}>
               Хадгалах
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -541,20 +528,21 @@ export default function PolicyEditerForm({
         <div className="mt-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Бүлгүүд</h2>
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={addSection}
               disabled={isProcessing}
-              className={`px-3 py-1 bg-green-600 text-white rounded hover:bg-green-500 ${
-                isProcessing ? "opacity-50 cursor-not-allowed" : ""
-              }`}
             >
               + Бүлэг нэмэх
-            </button>
+            </Button>
           </div>
 
           {sections.map((section, sectionIndex) => (
-            <div key={section.id} className="mt-4 p-4 border rounded">
+            <div
+              key={section.id || sectionIndex}
+              className="mt-4 p-4 border rounded"
+            >
               <div className="flex items-center gap-4">
                 <span className="font-bold">{section.referenceNumber}.</span>
                 <Textarea
@@ -565,36 +553,32 @@ export default function PolicyEditerForm({
                   placeholder="Бүлгийн текст оруулна уу"
                   className="flex-1 p-2 border rounded"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="destructive"
                   onClick={() => deleteSection(sectionIndex)}
                   disabled={isProcessing}
-                  className={`px-3 py-1 bg-red-600 text-white rounded hover:bg-red-500 ${
-                    isProcessing ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
                 >
                   - Устгах
-                </button>
+                </Button>
               </div>
 
               <div className="ml-6 mt-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-medium">Заалтууд</h3>
-                  <button
+                  <Button
                     type="button"
+                    variant="link"
                     onClick={() => addClause(sectionIndex)}
                     disabled={isProcessing}
-                    className={`px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 ${
-                      isProcessing ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
                   >
                     + Заалт нэмэх
-                  </button>
+                  </Button>
                 </div>
 
                 {section.clauses.map((clause, clauseIndex) => (
                   <ClauseItem
-                    key={clause.id}
+                    key={clause.id || `${sectionIndex}-${clauseIndex}`}
                     sectionIndex={sectionIndex}
                     clause={clause}
                     clauseIndex={clauseIndex}

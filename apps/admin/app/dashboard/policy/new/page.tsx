@@ -10,14 +10,12 @@ import "react-datepicker/dist/react-datepicker.css";
 import { Button } from "@/components/ui/button";
 
 interface Clause {
-  tempId: string;
   referenceNumber: string;
   text: string;
   children?: Clause[];
 }
 
 interface Section {
-  tempId: string;
   referenceNumber: string;
   text: string;
   clauses: Clause[];
@@ -73,8 +71,6 @@ const ClauseItem = ({
             variant={"link"}
             onClick={() => addSubClause(sectionIndex, path)}
             disabled={isProcessing}
-            // className={`px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
-            //   }`}
           >
             + Дэд заалт
           </Button>
@@ -84,8 +80,6 @@ const ClauseItem = ({
           variant={"destructive"}
           onClick={() => deleteClause(sectionIndex, path)}
           disabled={isProcessing}
-          // className={`px-3 py-1 bg-red-600 text-white rounded hover:bg-red-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
-          //   }`}
         >
           - Устгах
         </Button>
@@ -94,7 +88,7 @@ const ClauseItem = ({
         <div className="ml-6 mt-2">
           {clause.children.map((subClause, subClauseIndex) => (
             <ClauseItem
-              key={subClause.tempId}
+              key={`${sectionIndex}-${path.join("-")}-${subClauseIndex}`}
               sectionIndex={sectionIndex}
               clause={subClause}
               clauseIndex={subClauseIndex}
@@ -126,27 +120,23 @@ const NewPolicy = () => {
   // Бүлэг нэмэх
   const addSection = useCallback(() => {
     if (isProcessing) return;
-    setIsProcessing(true);
     setPolicyData((prev) => ({
       ...prev,
       sections: [
         ...prev.sections,
         {
-          tempId: crypto.randomUUID(),
           referenceNumber: `${prev.sections.length + 1}`,
           text: "",
           clauses: [],
         },
       ],
     }));
-    setIsProcessing(false);
   }, [isProcessing]);
 
   // Бүлэг устгах
   const deleteSection = useCallback(
     (sectionIndex: number) => {
       if (isProcessing) return;
-      setIsProcessing(true);
       setPolicyData((prev) => ({
         ...prev,
         sections: prev.sections
@@ -164,7 +154,6 @@ const NewPolicy = () => {
             })),
           })),
       }));
-      setIsProcessing(false);
     },
     [isProcessing]
   );
@@ -173,22 +162,17 @@ const NewPolicy = () => {
   const addClause = useCallback(
     (sectionIndex: number) => {
       if (isProcessing) return;
-      setIsProcessing(true);
       setPolicyData((prev) => {
         const newSections = JSON.parse(JSON.stringify(prev.sections)); // Deep copy
         const section = newSections[sectionIndex];
         const newClause: Clause = {
-          tempId: crypto.randomUUID(),
           text: "",
-          referenceNumber: `${section.referenceNumber}.${
-            section.clauses.length + 1
-          }`,
+          referenceNumber: `${section.referenceNumber}.${section.clauses.length + 1}`,
           children: [],
         };
         section.clauses = [...section.clauses, newClause];
         return { ...prev, sections: newSections };
       });
-      setIsProcessing(false);
     },
     [isProcessing]
   );
@@ -197,34 +181,25 @@ const NewPolicy = () => {
   const addSubClause = useCallback(
     (sectionIndex: number, path: number[]) => {
       if (isProcessing) return;
-      setIsProcessing(true);
       setPolicyData((prev) => {
         const newSections = JSON.parse(JSON.stringify(prev.sections)); // Deep copy
         const section = newSections[sectionIndex];
         let current = section.clauses;
-
-        // path-ийн дагуу зөв заалт руу хүрэх
         for (let i = 0; i < path.length - 1; i++) {
           current = current[path[i]].children!;
         }
-
         const parentClause = current[path[path.length - 1]];
         const newSubClause: Clause = {
-          tempId: crypto.randomUUID(),
           text: "",
-          referenceNumber: `${parentClause.referenceNumber}.${
-            (parentClause.children?.length ?? 0) + 1
-          }`,
+          referenceNumber: `${parentClause.referenceNumber}.${(parentClause.children?.length ?? 0) + 1}`,
           children: [],
         };
-
         parentClause.children = [
           ...(parentClause.children ?? []),
           newSubClause,
         ];
         return { ...prev, sections: newSections };
       });
-      setIsProcessing(false);
     },
     [isProcessing]
   );
@@ -245,26 +220,19 @@ const NewPolicy = () => {
   const updateClauseText = useCallback(
     (sectionIndex: number, path: number[], text: string) => {
       if (isProcessing) return;
-      setIsProcessing(true);
       setPolicyData((prev) => {
         const newSections = JSON.parse(JSON.stringify(prev.sections)); // Deep copy
         const section = newSections[sectionIndex];
         let current = section.clauses;
-
-        // path-ийн дагуу зөв заалт руу хүрэх
         for (let i = 0; i < path.length - 1; i++) {
           current = current[path[i]].children!;
         }
-
-        // Зөвхөн текст шинэчлэх
         current[path[path.length - 1]] = {
           ...current[path[path.length - 1]],
           text,
         };
-
         return { ...prev, sections: newSections };
       });
-      setIsProcessing(false);
     },
     [isProcessing]
   );
@@ -273,28 +241,20 @@ const NewPolicy = () => {
   const deleteClause = useCallback(
     (sectionIndex: number, path: number[]) => {
       if (isProcessing) return;
-      setIsProcessing(true);
       setPolicyData((prev) => {
         const newSections = JSON.parse(JSON.stringify(prev.sections)); // Deep copy
         const section = newSections[sectionIndex];
         let current = section.clauses;
-
-        // path-ийн дагуу зөв заалт руу хүрэх
         for (let i = 0; i < path.length - 1; i++) {
           current = current[path[i]].children!;
         }
-
-        // Сонгосон заалтыг устгах
         current.splice(path[path.length - 1], 1);
-
-        // Дугаарлалтыг шинэчлэх
         const parentRef =
           path.length === 1
             ? section.referenceNumber
             : current.length > 0
               ? current[0].referenceNumber.split(".").slice(0, -1).join(".")
               : section.referenceNumber;
-
         current.forEach((clause: Clause, idx: number) => {
           clause.referenceNumber = `${parentRef}.${idx + 1}`;
           clause.children = updateClauseNumbers(
@@ -302,10 +262,8 @@ const NewPolicy = () => {
             `${parentRef}.${idx + 1}`
           );
         });
-
         return { ...prev, sections: newSections };
       });
-      setIsProcessing(false);
     },
     [isProcessing]
   );
@@ -328,8 +286,14 @@ const NewPolicy = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
+    const toastId = toast.loading("Журам хадгалж байна...");
 
     try {
+      // Валидаци
+      if (!policyData.name || !policyData.referenceCode) {
+        throw new Error("Журмын нэр болон дугаар заавал оруулна уу");
+      }
+
       // 1. Журам хадгалах
       const policyResponse = await fetch("/api/policy", {
         method: "POST",
@@ -342,7 +306,8 @@ const NewPolicy = () => {
       });
 
       if (!policyResponse.ok) {
-        throw new Error("Журам хадгалахад алдаа гарлаа");
+        const error = await policyResponse.json();
+        throw new Error(error.error || "Журам хадгалахад алдаа гарлаа");
       }
 
       const policy = await policyResponse.json();
@@ -361,7 +326,8 @@ const NewPolicy = () => {
         });
 
         if (!sectionResponse.ok) {
-          throw new Error("Бүлэг хадгалахад алдаа гарлаа");
+          const error = await sectionResponse.json();
+          throw new Error(error.error || "Бүлэг хадгалахад алдаа гарлаа");
         }
 
         const createdSection = await sectionResponse.json();
@@ -382,7 +348,8 @@ const NewPolicy = () => {
             });
 
             if (!clauseResponse.ok) {
-              throw new Error("Заалт хадгалахад алдаа гарлаа");
+              const error = await clauseResponse.json();
+              throw new Error(error.error || "Заалт хадгалахад алдаа гарлаа");
             }
 
             const createdClause = await clauseResponse.json();
@@ -395,8 +362,10 @@ const NewPolicy = () => {
         await createClauses(section.clauses);
       }
 
-      toast.success("Журмыг амжилттай бүртгэлээ", {
-        position: "top-right",
+      toast.update(toastId, {
+        render: "Журмыг амжилттай бүртгэлээ",
+        type: "success",
+        isLoading: false,
         autoClose: 1000,
       });
 
@@ -404,8 +373,10 @@ const NewPolicy = () => {
         router.push("/dashboard/policy");
       }, 1000);
     } catch (error) {
-      toast.error(`Алдаа: ${(error as Error).message}`, {
-        position: "top-right",
+      toast.update(toastId, {
+        render: `Алдаа: ${(error as Error).message}`,
+        type: "error",
+        isLoading: false,
         autoClose: 5000,
       });
     } finally {
@@ -418,13 +389,7 @@ const NewPolicy = () => {
       <form onSubmit={handleSubmit}>
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Шинэ Журам Үүсгэх</h1>
-          <Button
-            type="submit"
-            disabled={isProcessing}
-            // className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 w-max m-1 ${
-            //   isProcessing ? "opacity-50 cursor-not-allowed" : ""
-            // }`}
-          >
+          <Button type="submit" disabled={isProcessing}>
             Хадгалах
           </Button>
         </div>
@@ -485,7 +450,6 @@ const NewPolicy = () => {
           </div>
         </div>
 
-        {/* Бүлэг нэмэх */}
         <div className="mt-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Бүлгүүд</h2>
@@ -494,17 +458,13 @@ const NewPolicy = () => {
               variant={"outline"}
               onClick={addSection}
               disabled={isProcessing}
-              className="cursor-pointer"
-              // className={`px-3 py-1 bg-green-600 text-white rounded hover:bg-green-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
-              //   }`}
             >
               + Бүлэг нэмэх
             </Button>
           </div>
 
-          {/* Бүлгүүд */}
           {policyData.sections.map((section, sectionIndex) => (
-            <div key={section.tempId} className="mt-4 p-4 border rounded">
+            <div key={sectionIndex} className="mt-4 p-4 border rounded">
               <div className="flex items-center gap-4">
                 <span className="font-bold">{section.referenceNumber}.</span>
                 <Textarea
@@ -520,14 +480,11 @@ const NewPolicy = () => {
                   variant={"destructive"}
                   onClick={() => deleteSection(sectionIndex)}
                   disabled={isProcessing}
-                  // className={`px-3 py-1 bg-red-600 text-white rounded hover:bg-red-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
-                  //   }`}
                 >
                   - Устгах
                 </Button>
               </div>
 
-              {/* Заалтууд */}
               <div className="ml-6 mt-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-medium">Заалтууд</h3>
@@ -536,8 +493,6 @@ const NewPolicy = () => {
                     variant={"link"}
                     onClick={() => addClause(sectionIndex)}
                     disabled={isProcessing}
-                    // className={`px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
-                    //   }`}
                   >
                     + Заалт нэмэх
                   </Button>
@@ -545,7 +500,7 @@ const NewPolicy = () => {
 
                 {section.clauses.map((clause, clauseIndex) => (
                   <ClauseItem
-                    key={clause.tempId}
+                    key={`${sectionIndex}-${clauseIndex}`}
                     sectionIndex={sectionIndex}
                     clause={clause}
                     clauseIndex={clauseIndex}
