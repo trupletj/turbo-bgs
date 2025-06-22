@@ -38,5 +38,5 @@ yarn-error.log*
 *.pem
 
 
-# pm2 config
+# pm2 config file ignore
 ecosystem.config.js
