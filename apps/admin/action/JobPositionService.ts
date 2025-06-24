@@ -208,3 +208,9 @@ export const getAllJobPositions = async () => {
     }
   }
 };
+
+getJobPositions, getPosition, editPosition, removePosition;
+
+function getJobPositions({ query }) {
+  const job_position = await prisma.job_position.findMany(query);
+}
