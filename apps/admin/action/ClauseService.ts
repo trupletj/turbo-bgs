@@ -1,7 +1,10 @@
 "use server";
 
-import { Clause } from "@/types/clause";
 import { prisma } from "@repo/database";
+import {
+  clause,
+  clause as Clause,
+} from "@repo/database/generated/prisma/client";
 
 export const createClause = async (
   data: Omit<Clause, "id" | "isDeleted" | "children"> & { policyId: string }
@@ -179,4 +182,44 @@ export const restoreClause = async (id: string) => {
       `Заалтыг сэргээхэд алдаа гарлаа: ${(error as Error).message}`
     );
   }
+};
+
+export const getAllSortedClauses = async (sectionId?: string) => {
+  try {
+    const clauses = await prisma.clause.findMany({
+      where: {
+        sectionId: sectionId || undefined,
+        isDeleted: false,
+      },
+      include: {
+        policy: true,
+        clause_job_position: {
+          include: { job_position: true },
+        },
+      },
+    });
+
+    return sortByReferenceNumber(clauses);
+  } catch (error) {
+    throw new Error(
+      `Заалтууд хайхад алдаа гарлаа: ${(error as Error).message}`
+    );
+  }
+};
+
+const sortByReferenceNumber = (clauses: clause[]) => {
+  return clauses.sort((a, b) => {
+    const refA = a.referenceNumber.split(".").map(Number);
+    const refB = b.referenceNumber.split(".").map(Number);
+
+    for (let i = 0; i < Math.max(refA.length, refB.length); i++) {
+      const partA = refA[i] ?? 0;
+      const partB = refB[i] ?? 0;
+
+      if (partA !== partB) {
+        return partA - partB;
+      }
+    }
+    return 0;
+  });
 };

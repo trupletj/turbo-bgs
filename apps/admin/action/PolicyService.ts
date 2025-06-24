@@ -197,3 +197,25 @@ export const restorePolicy = async (id: string) => {
     );
   }
 };
+
+export const getPolicyTest = async (id: string) => {
+  try {
+    const policy = await prisma.policy.findFirst({
+      where: { id, isDeleted: false },
+      select: {
+        id: true,
+        name: true,
+        approvedDate: true,
+        referenceCode: true,
+        isDeleted: true,
+      },
+    });
+    return policy;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    } else {
+      throw new Error("Тодорхой бус алдаа гарлаа");
+    }
+  }
+};

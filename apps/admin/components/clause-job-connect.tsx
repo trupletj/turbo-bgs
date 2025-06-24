@@ -24,7 +24,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Clause } from "@/types/clause";
 import { type_clause_job_position } from "@repo/database/generated/prisma/client/client";
 import { getAllJobPositions } from "@/action/JobPositionService";
 import {
@@ -102,9 +101,6 @@ export default function ClauseJobConnect({
   const [selectedPositions, setSelectedPositions] = useState<
     Record<string, type_clause_job_position>
   >({});
-  const [existingPositions, setExistingPositions] = useState<
-    Record<string, type_clause_job_position>
-  >({});
   const [expandedOrganizations, setExpandedOrganizations] = useState<
     Record<string, boolean>
   >({});
@@ -139,7 +135,6 @@ export default function ClauseJobConnect({
         },
         {} as Record<string, type_clause_job_position>
       );
-      setExistingPositions(positionMap);
       setSelectedPositions(positionMap);
       console.log("Clause positions fetched:", {
         clauseId: clause.id,
