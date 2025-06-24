@@ -10,6 +10,6 @@ export default async function Home() {
 
 
   return (
-    <>{user && user.name}</>
+    <>{user && user?.first_name}</>
   )
 }
