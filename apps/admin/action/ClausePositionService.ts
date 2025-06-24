@@ -69,7 +69,10 @@ export async function getClausePositionsByClauseId(clauseId: string) {
       clauseId,
       count: clausePositions.length,
     });
-    return clausePositions;
+    return clausePositions.map((pos) => ({
+      ...pos,
+      type: pos.type ?? "IMPLEMENTATION", // Default утга
+    }));
   } catch (error) {
     console.error("getClausePositionsByClauseId error:", error);
     throw new Error("Failed to fetch clause job_positions");

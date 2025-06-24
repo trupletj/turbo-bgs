@@ -4,7 +4,11 @@ import { useState, useEffect } from "react";
 import { use } from "react";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import ClauseJobConnect from "@/components/clause-job-connect";
+import { type_clause_job_position } from "@repo/database/generated/prisma/client/client";
+import { getClausePositionsByClauseId } from "@/action/ClausePositionService";
 
 interface Policy {
   id: string;
@@ -28,12 +32,21 @@ interface Clause {
   text: string;
   sectionId: string;
   parentId: string | null;
+  policyId?: string | null;
   children?: Clause[];
+  positions?: { positionId: string; type: type_clause_job_position }[];
 }
 
 interface PolicyDetailPageProps {
   params: Promise<{ id: string }>;
 }
+
+const actionTypes: { value: type_clause_job_position; label: string }[] = [
+  { value: "IMPLEMENTATION", label: "Хэрэгжүүлэлт" },
+  { value: "MONITORING", label: "Хяналт" },
+  { value: "VERIFICATION", label: "Баталгаажуулалт" },
+  { value: "DEPLOYMENT", label: "Нэвтрүүлэлт" },
+];
 
 export default function PolicyDetailPage({ params }: PolicyDetailPageProps) {
   const resolvedParams = use(params);
@@ -56,13 +69,53 @@ export default function PolicyDetailPage({ params }: PolicyDetailPageProps) {
         throw new Error(error.error || "Журам олдсонгүй");
       }
       const data: Policy = await response.json();
+
+      // Fetch positions for each clause
+      const enhancedSections = await Promise.all(
+        (data.section ?? []).map(async (section) => {
+          const enhancedClauses = await Promise.all(
+            (section.clause ?? []).map(async (clause) => {
+              try {
+                const positions = await getClausePositionsByClauseId(clause.id);
+                return {
+                  ...clause,
+                  positions: positions.map((pos) => ({
+                    positionId: pos.job_positionId,
+                    type: pos.type,
+                  })),
+                };
+              } catch (error) {
+                console.error(
+                  `Failed to fetch positions for clause ${clause.id}:`,
+                  error
+                );
+                return { ...clause, positions: [] };
+              }
+            })
+          );
+          return {
+            ...section,
+            clause: enhancedClauses,
+          };
+        })
+      );
+
+      const enhancedPolicy = {
+        ...data,
+        section: enhancedSections,
+      };
+
       console.log("Policy response:", {
-        id: data.id,
-        referenceCode: data.referenceCode,
-        name: data.name,
-        section: data.section?.length,
+        id: enhancedPolicy.id,
+        referenceCode: enhancedPolicy.referenceCode,
+        name: enhancedPolicy.name,
+        section: enhancedPolicy.section?.length,
+        clauseCount: enhancedPolicy.section?.reduce(
+          (acc, s) => acc + (s.clause?.length || 0),
+          0
+        ),
       });
-      setPolicy(data);
+      setPolicy(enhancedPolicy);
     } catch (error) {
       console.error("Failed to fetch policy:", error);
       throw notFound();
@@ -75,8 +128,23 @@ export default function PolicyDetailPage({ params }: PolicyDetailPageProps) {
     <div className={`ml-${level === 0 ? "1" : "0"}`}>
       {clauses.map((clause) => (
         <div key={clause.id} className="mt-2">
-          <span className="font-bold">{clause.referenceNumber}.</span>{" "}
-          {clause.text}
+          <div className="flex justify-between items-center gap-4">
+            <div className="flex-1">
+              <span className="font-bold">{clause.referenceNumber}.</span>{" "}
+              {clause.text}
+              {(clause.positions || []).length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {(clause.positions || []).map((pos) => (
+                    <Badge key={pos.positionId} variant="outline">
+                      {pos.positionId} (
+                      {actionTypes.find((t) => t.value === pos.type)?.label})
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+            <ClauseJobConnect clause={clause} onSave={fetchPolicy} />
+          </div>
           {clause.children &&
             clause.children.length > 0 &&
             renderClauses(clause.children, level + 1)}

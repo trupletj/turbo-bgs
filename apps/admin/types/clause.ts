@@ -18,3 +18,11 @@ export interface Section {
   text: string;
   clauses: Clause[];
 }
+
+export interface Policy {
+  id: string;
+  name: string | null;
+  referenceCode: string | null;
+  approvedDate: string | null;
+  section?: Section[];
+}
