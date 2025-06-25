@@ -191,12 +191,12 @@ export const getAllSortedClauses = async (sectionId?: string) => {
         sectionId: sectionId || undefined,
         isDeleted: false,
       },
-      include: {
-        policy: true,
-        clause_job_position: {
-          include: { job_position: true },
-        },
-      },
+      // include: {
+      //   policy: true,
+      //   clause_job_position: {
+      //     include: { job_position: true },
+      //   },
+      // },
     });
 
     return sortByReferenceNumber(clauses);

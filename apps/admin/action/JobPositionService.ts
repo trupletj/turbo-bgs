@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@repo/database";
-
+import { Prisma } from "@repo/database/generated/prisma/client/client";
 export const getJobPosition = async (id: string) => {
   try {
     const job_position = await prisma.job_position.findUnique({
@@ -209,8 +209,12 @@ export const getAllJobPositions = async () => {
   }
 };
 
-getJobPositions, getPosition, editPosition, removePosition;
 
-function getJobPositions({ query }) {
-  const job_position = await prisma.job_position.findMany(query);
-}
+export const getJobPositions = async(args: Prisma.job_positionFindManyArgs = {},
+) => {
+  try{
+    return prisma.job_position.findMany(args)
+  }catch(e){
+    console.log(e)
+  }
+} 

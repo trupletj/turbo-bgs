@@ -198,7 +198,7 @@ export const restorePolicy = async (id: string) => {
   }
 };
 
-export const getPolicyTest = async (id: string) => {
+export const getPolicyOne = async (id: string) => {
   try {
     const policy = await prisma.policy.findFirst({
       where: { id, isDeleted: false },
