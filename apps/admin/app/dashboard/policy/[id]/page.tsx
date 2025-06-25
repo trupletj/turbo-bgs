@@ -54,7 +54,16 @@ export default async function PolicyDetailPageTest({
 }: PolicyDetailPageProps) {
   const { id } = await params;
 
-  const policy: policy | null = await getPolicyOne(id);
+  const policy: policy | null = await getPolicyOne({
+      where: { id, isDeleted: false },
+      select: {
+        id: true,
+        name: true,
+        approvedDate: true,
+        referenceCode: true,
+        isDeleted: true,
+      },
+    });
   
   return (
     <div className="container mx-auto px-6 py-8 max-w-4xl">

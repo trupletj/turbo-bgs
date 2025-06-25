@@ -2,7 +2,7 @@
 
 import { prisma } from "@repo/database";
 import { Clause, Policy } from "@/types";
-
+import { Prisma } from "@repo/database/generated/prisma/client/client";
 export const createPolicy = async (data: Omit<Policy, "id" | "isDeleted">) => {
   try {
     if (data.referenceCode) {
@@ -198,18 +198,9 @@ export const restorePolicy = async (id: string) => {
   }
 };
 
-export const getPolicyOne = async (id: string) => {
+export const getPolicyOne = async (args: Prisma.policyFindManyArgs= {},) => {
   try {
-    const policy = await prisma.policy.findFirst({
-      where: { id, isDeleted: false },
-      select: {
-        id: true,
-        name: true,
-        approvedDate: true,
-        referenceCode: true,
-        isDeleted: true,
-      },
-    });
+    const policy = await prisma.policy.findFirst(args);
     return policy;
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -219,3 +210,4 @@ export const getPolicyOne = async (id: string) => {
     }
   }
 };
+
