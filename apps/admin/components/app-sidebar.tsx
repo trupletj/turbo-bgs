@@ -64,7 +64,7 @@ const data = {
       items: [
         {
           title: "Нийт",
-          url: "dashboard/rating",
+          url: "/dashboard/rating",
         },
         {
           title: "Шинэ үнэлгээ",
