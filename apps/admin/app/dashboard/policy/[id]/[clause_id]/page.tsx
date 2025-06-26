@@ -4,12 +4,12 @@ import React from 'react'
 const page =async ({
   params,
 }: {
-  params: Promise<{ clause_id: string }>
+  params: Promise<{ clause_id: string , id : string }>
 }) => {
-     const { clause_id } = await params
+     const { clause_id , id } = await params
   return (
   <ClauseJobConnect  />
   )
 }
 
-export default page
+export default page 
