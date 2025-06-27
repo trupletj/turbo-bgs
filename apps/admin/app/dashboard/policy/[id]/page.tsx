@@ -25,10 +25,10 @@ export default async function PolicyDetailPageTest({
   });
 
   return (
-    <div className="container mx-auto px-6 py-8 max-w-4xl">
+    <div className="container mx-auto px-6 py-8 max-w-6xl">
       <div className="flex justify-between mb-4">
         <h1 className="text-2xl font-bold">{policy?.name}</h1>
-        <div>
+        <div className="flex-shrink-0 ml-4">
           <Link href="/dashboard/policy">
             <Button variant="outline" className="mr-2">
               Буцах
@@ -39,6 +39,7 @@ export default async function PolicyDetailPageTest({
           </Link>
         </div>
       </div>
+
       <p className="font-semibold">Код: {policy?.referenceCode}</p>
       <p className="font-semibold mb-4">
         Баталсан огноо:{" "}

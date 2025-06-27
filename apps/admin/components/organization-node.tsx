@@ -33,6 +33,7 @@ import {
   updateClauseJobPosition,
 } from "@/action/ClausePositionService";
 import { useParams } from "next/navigation";
+import { toast } from "react-toastify";
 interface Props {
   organization: OrganizationWithJobRelations;
 }
@@ -85,21 +86,28 @@ function PositionNode({ position }: { position: TJobPosition }) {
         type: value,
       });
       setData(updated);
+      const valueLabel =
+        actionTypes.find((type) => type.value === value)?.label ?? value;
+      toast.success(
+        <span>
+          <strong>{valueLabel}</strong> төрөлтэй амжилттай сонгогдлоо
+        </span>,
+        {
+          autoClose: 1500,
+        }
+      );
     }
   };
 
   useEffect(() => {
-    // Guard: we need both IDs before we can query
     if (!clause_id || !position?.id) return;
 
     const fetchOrCreate = async () => {
-      // 1️⃣ Try to fetch the existing link
       const existing = await getClauseJobPosition({
         where: {
           AND: [{ clauseId: clause_id }, { job_positionId: position.id }],
         },
       });
-
       if (existing) {
         setData(existing);
         return;
@@ -115,23 +123,22 @@ function PositionNode({ position }: { position: TJobPosition }) {
     if (!clause_id || !position?.id) return;
 
     if (data) {
-      // ✅ Update existing entry: toggle is_checked
       const updated = await updateClauseJobPosition({
         id: data.id,
         is_checked: !data.is_checked,
       });
-
       setData(updated);
     } else {
-      // ✅ Create new entry with is_checked true
       const created = await createClauseJobPosition({
         clauseId: clause_id,
         job_positionId: position.id,
         is_checked: true,
-        type: type_clause_job_position.IMPLEMENTATION, // or null / configurable
+        type: type_clause_job_position.IMPLEMENTATION,
       });
-
       setData(created);
+      toast.success("Хэрэгжүүлэлт төрөлтэй сонгогдлоо.", {
+        autoClose: 1000, // 3000ms = 3 секунд
+      });
     }
   };
 
@@ -140,6 +147,7 @@ function PositionNode({ position }: { position: TJobPosition }) {
       <Checkbox
         checked={data?.is_checked}
         onCheckedChange={handleCheckChange}
+        className="border-gray-300 hover:border-blue-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 mr-2"
       />
       <User className="h-3 w-3 mr-2 text-gray-500" />
       <span className="text-sm">{position.name}</span>
@@ -151,7 +159,7 @@ function PositionNode({ position }: { position: TJobPosition }) {
           defaultValue={data?.type ?? undefined}
           value={data?.type ?? undefined}
         >
-          <SelectTrigger className="w-[220px]">
+          <SelectTrigger className="ml-2 w-[220px] border-gray-300">
             <SelectValue placeholder="Төрөл сонгох" />
           </SelectTrigger>
           <SelectContent>

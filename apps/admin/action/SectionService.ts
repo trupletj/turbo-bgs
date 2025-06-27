@@ -2,6 +2,7 @@
 
 import { prisma } from "@repo/database";
 import { Section } from "@/types";
+import { section } from "@repo/database/generated/prisma/client";
 
 export const createSection = async (
   data: Omit<Section, "id" | "isDeleted">
@@ -49,14 +50,32 @@ export const getSection = async (id: string) => {
 
 export const getAllSections = async (policyId?: string) => {
   try {
-    return await prisma.section.findMany({
+    const sections = await prisma.section.findMany({
       where: { policyId: policyId || undefined, isDeleted: false },
       include: { clause: { where: { isDeleted: false } } },
-      orderBy: { referenceNumber: "asc" },
     });
+
+    return sortByReferenceNumber(sections);
   } catch (error) {
     throw new Error(`Бүлгүүд хайхад алдаа гарлаа: ${(error as Error).message}`);
   }
+};
+
+const sortByReferenceNumber = (sections: section[]) => {
+  return sections.sort((a, b) => {
+    const refA = a.referenceNumber!.split(".").map(Number);
+    const refB = b.referenceNumber!.split(".").map(Number);
+
+    for (let i = 0; i < Math.max(refA.length, refB.length); i++) {
+      const partA = refA[i] ?? 0;
+      const partB = refB[i] ?? 0;
+
+      if (partA !== partB) {
+        return partA - partB;
+      }
+    }
+    return 0;
+  });
 };
 
 export const updateSection = async (
