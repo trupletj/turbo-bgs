@@ -10,7 +10,7 @@ const SectionList = async ({ id }: { id: string }) => {
     <div>
       {sections?.map((section) => (
         <div key={section.id + "section-list"}>
-          <div className="font-semibold flex flex-row gap-5 mb-1">
+          <div className="font-semibold flex flex-row gap-5 m-2">
             <div>{section.referenceNumber + "."}</div>
             <div>{section.text}</div>
           </div>

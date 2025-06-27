@@ -13,15 +13,17 @@ interface SingleClauseProps {
 const SingleClause = async ({ clause }: SingleClauseProps) => {
   const clause_id = clause.id;
   return (
-    <div className="ml-2 flex flex-row gap-5 items-center">
-      <div>{clause.referenceNumber}</div>
-      <div>{clause.text}</div>
+    <div className="ml-2 flex flex-row gap-5 items-start">
+      <div className="shrink-0 font-light">{clause.referenceNumber}</div>
+      <div className="flex-1">{clause.text}</div>
 
+      {/* Action buttons */}
       <div className="flex flex-row gap-2 items-center ml-auto">
         <Link href={`/dashboard/policy/${clause.policyId}/${clause.id}`}>
           <IconLink className="w-3 h-3 cursor-pointer hover:scale-[1.2]" />
         </Link>
       </div>
+
       <Dialog>
         <DialogTrigger asChild>
           <Button variant="outline">Үнэлэх</Button>

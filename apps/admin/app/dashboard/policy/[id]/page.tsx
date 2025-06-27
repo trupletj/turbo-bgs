@@ -26,7 +26,7 @@ export default async function PolicyDetailPageTest({
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-4xl">
-      <div className="flex justify-between mb-6">
+      <div className="flex justify-between mb-4">
         <h1 className="text-2xl font-bold">{policy?.name}</h1>
         <div>
           <Link href="/dashboard/policy">
@@ -40,7 +40,7 @@ export default async function PolicyDetailPageTest({
         </div>
       </div>
       <p className="font-semibold">Код: {policy?.referenceCode}</p>
-      <p className="font-semibold">
+      <p className="font-semibold mb-4">
         Баталсан огноо:{" "}
         {policy?.approvedDate
           ? new Date(policy.approvedDate).toLocaleDateString("mn-MN")
