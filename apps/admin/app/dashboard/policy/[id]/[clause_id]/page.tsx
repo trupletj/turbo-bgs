@@ -1,15 +1,8 @@
-import ClauseJobConnect from '@/components/clause-jobe-connect'
-import React from 'react'
+import ClauseJobConnect from "@/components/clause-jobe-connect";
+import React from "react";
 
-const page =async ({
-  params,
-}: {
-  params: Promise<{ clause_id: string , id : string }>
-}) => {
-     const { clause_id , id } = await params
-  return (
-  <ClauseJobConnect  />
-  )
-}
+const page = async () => {
+  return <ClauseJobConnect />;
+};
 
-export default page 
+export default page;

@@ -16,14 +16,11 @@ import {
 } from "@/components/ui/select";
 import { ChevronRight, Building2, Users, Briefcase, User } from "lucide-react";
 import {
-  organization as TOrganization,
   job_position as TJobPosition,
-  heltes as THeltes,
   clause_job_position as TClauseJobPosition,
   type_clause_job_position,
 } from "@repo/database/generated/prisma/client/client";
 import { Button } from "./ui/button";
-import { getJobPosition } from "@/action/JobPositionService";
 import {
   OrganizationWithJobRelations,
   HeltesWithJobRelations,

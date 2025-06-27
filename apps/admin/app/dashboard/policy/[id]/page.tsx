@@ -1,26 +1,8 @@
-import { useState, useEffect } from "react";
-import { use } from "react";
-import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import ClauseJobConnect from "@/components/clause-job-connect";
-import { type_clause_job_position } from "@repo/database/generated/prisma/client/client";
-import { getPolicy, getPolicyOne } from "@/action/PolicyService";
-import { getClausePositionsByClauseId } from "@/action/ClausePositionService";
+import { getPolicyOne } from "@/action/PolicyService";
 import { policy } from "@repo/database/generated/prisma/client/client";
 import SectionList from "@/components/section-list";
-
-interface Clause {
-  id: string;
-  referenceNumber: string;
-  text: string;
-  sectionId: string;
-  parentId: string | null;
-  policyId?: string | null;
-  children?: Clause[];
-  positions?: { positionId: string; type: type_clause_job_position }[];
-}
 
 interface PolicyDetailPageProps {
   params: Promise<{ id: string }>;

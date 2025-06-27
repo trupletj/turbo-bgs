@@ -1,5 +1,5 @@
 import { clause as TClause } from "@repo/database/generated/prisma/client";
-import { ChevronsLeftRightEllipsis, Link as IconLink } from "lucide-react";
+import { Link as IconLink } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
