@@ -11,22 +11,6 @@ import { getClausePositionsByClauseId } from "@/action/ClausePositionService";
 import { policy } from "@repo/database/generated/prisma/client/client";
 import SectionList from "@/components/section-list";
 
-// interface Policy {
-//   id: string;
-//   name: string | null;
-//   referenceCode: string | null;
-//   approvedDate: string | null;
-//   section?: Section[];
-// }
-
-interface Section {
-  id: string;
-  referenceNumber: string;
-  text?: string | null;
-  policyId: string;
-  clause?: Clause[];
-}
-
 interface Clause {
   id: string;
   referenceNumber: string;
@@ -42,29 +26,22 @@ interface PolicyDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-const actionTypes: { value: type_clause_job_position; label: string }[] = [
-  { value: "IMPLEMENTATION", label: "Хэрэгжүүлэлт" },
-  { value: "MONITORING", label: "Хяналт" },
-  { value: "VERIFICATION", label: "Баталгаажуулалт" },
-  { value: "DEPLOYMENT", label: "Нэвтрүүлэлт" },
-];
-
 export default async function PolicyDetailPageTest({
   params,
 }: PolicyDetailPageProps) {
   const { id } = await params;
 
   const policy: policy | null = await getPolicyOne({
-      where: { id, isDeleted: false },
-      select: {
-        id: true,
-        name: true,
-        approvedDate: true,
-        referenceCode: true,
-        isDeleted: true,
-      },
-    });
-  
+    where: { id, isDeleted: false },
+    select: {
+      id: true,
+      name: true,
+      approvedDate: true,
+      referenceCode: true,
+      isDeleted: true,
+    },
+  });
+
   return (
     <div className="container mx-auto px-6 py-8 max-w-4xl">
       <div className="flex justify-between mb-6">
@@ -88,7 +65,6 @@ export default async function PolicyDetailPageTest({
           : "Огноогүй"}
       </p>
       <SectionList id={id} />
-      
     </div>
   );
 }

@@ -2,72 +2,70 @@ import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from '@/components/ui/resizable';
-import { getPolicyOne } from "@/action/PolicyService"
-import { getJobPositions } from "@/action/JobPositionService"
+} from "@/components/ui/resizable";
+import { getJobPositions } from "@/action/JobPositionService";
 import { prisma } from "@repo/database";
 
-
-
 const RatingPage = async ({
-  searchParams, 
+  searchParams,
+  params,
 }: {
   searchParams: {
     clause_id?: string;
     job_id?: string;
   };
+  params: {
+    id: string;
+  };
 }) => {
+  const { clause_id, job_id } = searchParams;
+  const { id } = params;
 
-  const { clause_id, job_id } = searchParams
-
-  const clauseWithPolicy = clause_id ? await prisma.clause.findUnique({
-  where: { id: clause_id },
-  select: {
-    policy: {
-      select: {
-        id: true,
-        name: true,
-        referenceCode: true,
-        approvedDate: true,
-        clause: {
-          where: { isDeleted: false }, // ← шаардлагатай бол шүү
-          orderBy: { referenceNumber: 'asc' },
-          select: {
-            id: true,
-            text: true,
-            referenceNumber: true,
+  const clauseWithPolicy = clause_id
+    ? await prisma.clause.findUnique({
+        where: { id: clause_id },
+        select: {
+          policy: {
+            select: {
+              id: true,
+              name: true,
+              referenceCode: true,
+              approvedDate: true,
+              clause: {
+                where: { isDeleted: false }, // ← шаардлагатай бол шүү
+                orderBy: { referenceNumber: "asc" },
+                select: {
+                  id: true,
+                  text: true,
+                  referenceNumber: true,
+                },
+              },
+            },
           },
         },
-      },
-    },
-  },
-}) : null
+      })
+    : null;
 
-  const RelatedJobPositions = clause_id ? await getJobPositions({
-    where: {
-      clause_job_position: {
-        some: {
-          clauseId: clause_id,
-          is_checked : true
+  const RelatedJobPositions = clause_id
+    ? await getJobPositions({
+        where: {
+          clause_job_position: {
+            some: {
+              clauseId: clause_id,
+              is_checked: true,
+            },
+          },
         },
-      },
-    },
-  }) : null
-
-// const historyOfRating =( clause_id && job_id) ? await getRatings({
-//   where : {
-//     AND : {
-
-//     }
-//   }
-// }) : []
-
+      })
+    : null;
 
   return (
     <>
       <h1>Журам болон заалтын үнэлгээ хийх</h1>
-      <div>Search : Jurmiin nereer haih. or Jurmiin dugaaraar haih bolomjtoi baih</div>
-      <input placeholder='Jurmiin ner eswel dugaaraar haina uu '/>
+      <div>
+        Search : Jurmiin nereer haih. or Jurmiin dugaaraar haih bolomjtoi baih
+      </div>
+      <input placeholder="Jurmiin ner eswel dugaaraar haina uu " />
       <div>Журмын нэр хайлт хийж сонгож болдог байх</div>
       <ResizablePanelGroup
         direction="horizontal"
@@ -76,21 +74,21 @@ const RatingPage = async ({
         <ResizablePanel defaultSize={35} minSize={10}>
           <div className="flex h-full items-center justify-center p-6">
             <span className="font-semibold">
-              {JSON.stringify(clauseWithPolicy,null,2)}
+              {JSON.stringify(clauseWithPolicy, null, 2)}
             </span>
           </div>
         </ResizablePanel>
         <ResizableHandle />
         <ResizablePanel defaultSize={35} minSize={10}>
           <div className="flex h-full items-center justify-center p-6">
-             {JSON.stringify(RelatedJobPositions,null,2)}
+            {JSON.stringify(RelatedJobPositions, null, 2)}
           </div>
         </ResizablePanel>
         <ResizableHandle />
         <ResizablePanel defaultSize={35} minSize={10}>
           <div className="flex h-full items-center justify-center p-6">
             <span className="font-semibold">
-            {(clause_id && job_id) && <RatingForm /> }
+              {clause_id && job_id && <RatingForm />}
             </span>
           </div>
         </ResizablePanel>
@@ -101,9 +99,10 @@ const RatingPage = async ({
 
 export default RatingPage;
 
-
-function RatingForm(){
-  return <form>
-    <input placeholder='onoo' className='border' />
-  </form>
+function RatingForm() {
+  return (
+    <form>
+      <input placeholder="onoo" className="border" />
+    </form>
+  );
 }

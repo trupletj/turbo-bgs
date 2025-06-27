@@ -198,7 +198,7 @@ export const restorePolicy = async (id: string) => {
   }
 };
 
-export const getPolicyOne = async (args: Prisma.policyFindManyArgs= {},) => {
+export const getPolicyOne = async (args: Prisma.policyFindManyArgs = {}) => {
   try {
     const policy = await prisma.policy.findFirst(args);
     return policy;
@@ -211,3 +211,47 @@ export const getPolicyOne = async (args: Prisma.policyFindManyArgs= {},) => {
   }
 };
 
+export async function newPolicy(formData: FormData) {
+  const name = formData.get("name") as string;
+  const approvedDate = formData.get("approvedDate") as string;
+  const referenceCode = formData.get("referenceCode") as string;
+
+  try {
+    const createdPolicy = await prisma.policy.create({
+      data: {
+        name: name || null,
+        approvedDate: approvedDate ? new Date(approvedDate) : null,
+        referenceCode,
+        isDeleted: false,
+      },
+    });
+
+    return createdPolicy; // Үүссэн policy буцаана
+  } catch (error) {
+    console.error("Policy үүсгэхэд алдаа гарлаа:", error);
+    throw new Error("Policy үүсгэхэд алдаа гарлаа");
+  }
+}
+
+export async function editPolicy({
+  id,
+  name,
+  referenceCode,
+  approvedDate,
+}: {
+  id: string;
+  name?: string;
+  referenceCode?: string;
+  approvedDate?: Date;
+}) {
+  const clauseJobPosition = await prisma.policy.update({
+    where: { id },
+    data: {
+      ...(name !== undefined && { name }),
+      ...(referenceCode !== undefined && { referenceCode }),
+      ...(approvedDate !== undefined && { approvedDate }),
+    },
+  });
+
+  return clauseJobPosition;
+}

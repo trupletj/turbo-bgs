@@ -13,7 +13,6 @@ import {
 import { toast } from "react-toastify";
 import Link from "next/link";
 
-
 interface Policy {
   id: string;
   name: string | null;
@@ -75,7 +74,7 @@ export default function PolicyList() {
         <h2 className="text-2xl font-bold">Журмууд</h2>
       </div>
       {isLoading ? (
-        <div className="text-center py-8">Ачааллаж байна...</div>
+        <div className="text-center py-8">Ачаалж байна...</div>
       ) : policies.length === 0 ? (
         <div className="text-center py-8 text-gray-500">Журам олдсонгүй</div>
       ) : (

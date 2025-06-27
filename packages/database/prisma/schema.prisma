@@ -175,15 +175,15 @@ model job_position {
 }
 
 model rating {
-  id                 String          @id @db.Uuid
+  id                 String          @id @default(uuid()) @db.Uuid
   score              Int
   description        String?
   isDeleted          Boolean         @default(false)
   clause_job_position_id String          @db.Uuid
-  rating_session_id  String          @db.Uuid
-  scored_date        DateTime        @db.Date
+  rating_session_id  String?          @db.Uuid
+  scored_date        DateTime        @db.Date @default(now())
   clause_job_position    clause_job_position @relation(fields: [clause_job_position_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  rating_session     rating_session  @relation(fields: [rating_session_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  rating_session     rating_session?  @relation(fields: [rating_session_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model rating_session {

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "rating" ALTER COLUMN "rating_session_id" DROP NOT NULL,
+ALTER COLUMN "scored_date" SET DEFAULT CURRENT_TIMESTAMP;
