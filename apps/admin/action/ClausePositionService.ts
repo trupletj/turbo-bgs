@@ -153,6 +153,16 @@ export async function createClauseJobPosition({
   return clauseJobPosition;
 }
 
+export async function deleteClauseJobPosition({ id }: { id: string }) {
+  const clauseJobPosition = await prisma.clause_job_position.delete({
+    where: {
+      id: id,
+    },
+  });
+
+  return clauseJobPosition;
+}
+
 export async function updateClauseJobPosition({
   id,
   is_checked,

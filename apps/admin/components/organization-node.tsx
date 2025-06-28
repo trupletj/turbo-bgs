@@ -122,12 +122,32 @@ function PositionNode({ position }: { position: TJobPosition }) {
   const handleCheckChange = async () => {
     if (!clause_id || !position?.id) return;
 
-    if (data) {
+    const existingClauseJobPosition = await getClauseJobPosition({
+      where: {
+        AND: [{ clauseId: clause_id }, { job_positionId: position.id }],
+      },
+    });
+
+    if (existingClauseJobPosition) {
       const updated = await updateClauseJobPosition({
-        id: data.id,
-        is_checked: !data.is_checked,
+        id: existingClauseJobPosition.id,
+        is_checked: !existingClauseJobPosition.is_checked,
       });
       setData(updated);
+      if (updated.is_checked) {
+        const valueLabel =
+          actionTypes.find((type) => type.value === updated.type)?.label ??
+          updated.type;
+
+        toast.success(
+          <span>
+            <strong>{valueLabel}</strong> төрөлтэй амжилттай сонгогдлоо
+          </span>,
+          {
+            autoClose: 1500,
+          }
+        );
+      }
     } else {
       const created = await createClauseJobPosition({
         clauseId: clause_id,
@@ -136,9 +156,18 @@ function PositionNode({ position }: { position: TJobPosition }) {
         type: type_clause_job_position.IMPLEMENTATION,
       });
       setData(created);
-      toast.success("Хэрэгжүүлэлт төрөлтэй сонгогдлоо.", {
-        autoClose: 1000, // 3000ms = 3 секунд
-      });
+      const valueLabel =
+        actionTypes.find((type) => type.value === created.type)?.label ??
+        created.type;
+
+      toast.success(
+        <span>
+          <strong>{valueLabel}</strong> төрөлтэй амжилттай сонгогдлоо
+        </span>,
+        {
+          autoClose: 1500,
+        }
+      );
     }
   };
 

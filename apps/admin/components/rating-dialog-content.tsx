@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   DialogContent,
   DialogHeader,
@@ -18,7 +18,17 @@ import { Button } from "./ui/button";
 import { getPositions } from "@/action/ClausePositionService";
 import { JobPositionWithOrganization } from "@/types/organization";
 import { createRating, getRatings } from "@/action/RatingService";
-import { rating as Rating } from "@repo/database/generated/prisma/client/client";
+import {
+  rating as Rating,
+  type_clause_job_position,
+} from "@repo/database/generated/prisma/client/client";
+import { Star } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { toast } from "react-toastify";
 
 const RatingDialogContent = ({
   id,
@@ -36,11 +46,18 @@ const RatingDialogContent = ({
     useState<JobPositionWithOrganization | null>(null);
   const [ratings, setRatings] = useState<Rating[]>([]);
   const [showDescription, setShowDescription] = useState(false);
+  const prevId = useRef<string | null>(null);
+  const actionTypes: { value: type_clause_job_position; label: string }[] = [
+    { value: "IMPLEMENTATION", label: "Хэрэгжүүлэлт" },
+    { value: "MONITORING", label: "Хяналт" },
+    { value: "VERIFICATION", label: "Баталгаажуулалт" },
+    { value: "DEPLOYMENT", label: "Нэвтрүүлэлт" },
+  ];
 
   useEffect(() => {
     const fetchPositions = async () => {
       const jobs = (await getPositions({
-        where: { clauseId: id },
+        where: { clauseId: id, is_checked: true },
         include: {
           job_position: {
             include: {
@@ -49,10 +66,14 @@ const RatingDialogContent = ({
           },
         },
       })) as JobPositionWithOrganization[];
+
       setClauseJobs(jobs ?? []);
     };
 
-    fetchPositions();
+    if (id && id !== prevId.current) {
+      fetchPositions();
+      prevId.current = id;
+    }
   }, [id]);
 
   const handleSelectPosition = async (
@@ -80,12 +101,12 @@ const RatingDialogContent = ({
     const description = formData.get("description")?.toString() || undefined;
 
     if (!score || score < 1 || score > 6) {
-      alert("Оноо 1-6 хооронд байх ёстой!");
+      toast.warning("Оноо 1-6 хооронд байх ёстой!", { autoClose: 1500 });
       return;
     }
 
     if (score === 6 && !description) {
-      alert("Тайлбар оруулна уу.");
+      toast.warning("Тайлбар оруулна уу.", { autoClose: 1500 });
       return;
     }
 
@@ -99,8 +120,7 @@ const RatingDialogContent = ({
           },
         },
       });
-
-      alert("Үнэлгээ амжилттай хадгалагдлаа!");
+      toast.success("Үнэлгээ амжилттай хадгалагдлаа!", { autoClose: 1500 });
 
       const updated = await getRatings({
         where: { clause_job_position_id: selectedClausePosition.id },
@@ -143,6 +163,9 @@ const RatingDialogContent = ({
                   <div className="text-sm text-muted-foreground">
                     {clauseJob.job_position?.organization?.name ||
                       "Байгууллага олдсонгүй"}
+                    ---{" "}
+                    {actionTypes.find((type) => type.value === clauseJob.type)
+                      ?.label || "Төрөл олдсонгүй"}
                   </div>
                 </div>
               ))}
@@ -159,9 +182,14 @@ const RatingDialogContent = ({
                 <h2 className="text-xl font-semibold">
                   {selectedClausePosition.job_position?.name}
                 </h2>
-                <p className="text-muted-foreground text-sm mt-2">
-                  {selectedClausePosition.job_position?.organization?.name}
-                </p>
+                <div className="text-muted-foreground text-sm mt-2">
+                  {selectedClausePosition.job_position?.organization?.name} ---{" "}
+                  {
+                    actionTypes.find(
+                      (type) => type.value === selectedClausePosition.type
+                    )?.label
+                  }
+                </div>
               </div>
 
               <form
@@ -170,23 +198,36 @@ const RatingDialogContent = ({
                   handleSubmit(e, selectedClausePosition, setRatings)
                 }
               >
-                <div>
-                  <label className="block mb-1 font-medium">Оноо (1-6):</label>
-                  <select
-                    name="score"
-                    className="w-full border px-3 py-2 rounded-md"
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setShowDescription(val === 6);
-                    }}
-                  >
-                    <option value="">-- Оноо сонгоно уу --</option>
-                    {[1, 2, 3, 4, 5, 6].map((n) => (
-                      <option key={n} value={n}>
-                        {n}
-                      </option>
-                    ))}
-                  </select>
+                <div className="flex items-center space-x-3 justify-between">
+                  <div className="flex items-center space-x-3 my-2">
+                    <label className="block font-medium">Оноо (1-6):</label>
+                    <select
+                      name="score"
+                      className="border px-3 rounded-md w-max-[120px]"
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setShowDescription(val === 6);
+                      }}
+                    >
+                      <option value="">-- Оноо сонгоно уу --</option>
+                      {[1, 2, 3, 4, 5, 6].map((n) => (
+                        <option key={n} value={n}>
+                          {n}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button type="submit" className="w-max-[40px]">
+                        <Star />
+                      </Button>
+                    </TooltipTrigger>
+
+                    <TooltipContent className="h-max-[20px]">
+                      Үнэлгээ өгөх
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
 
                 {showDescription && (
@@ -200,9 +241,7 @@ const RatingDialogContent = ({
                     />
                   </div>
                 )}
-                <Button type="submit" className="w-full">
-                  Үнэлгээ хадгалах
-                </Button>
+
                 <div>
                   <h4 className="font-semibold mb-2">Үнэлгээний жагсаалт:</h4>
                   {ratings.length === 0 ? (
