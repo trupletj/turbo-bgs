@@ -1,6 +1,6 @@
-'use server';
-import { prisma } from '@repo/database';
-import { sendSms } from './sms';
+"use server";
+import { prisma } from "@repo/database";
+import { sendSms } from "./sms";
 
 export async function matchUserInfo(register_number: string, phone: string) {
   const user = await prisma.user.findUnique({
@@ -10,10 +10,10 @@ export async function matchUserInfo(register_number: string, phone: string) {
   });
   if (!user || user.phone !== phone) {
     // буруу өгөгдөл ирсэн
-    return { type: 'error', errorMsg: 'Aldaa garlaa' };
+    return { type: "error", errorMsg: "Aldaa garlaa" };
   }
 
-  const code = '' + Math.floor(100000 + Math.random() * 900000);
+  const code = "" + Math.floor(100000 + Math.random() * 900000);
   const expiresAt = new Date(Date.now() + 3 * 60 * 1000);
 
   await prisma.user.update({
@@ -28,6 +28,6 @@ export async function matchUserInfo(register_number: string, phone: string) {
   const smsres = await sendSms(phone, `Tanii neg udaagiin code :  ${code}`);
 
   return {
-    type: 'ok',
+    type: "ok",
   };
 }

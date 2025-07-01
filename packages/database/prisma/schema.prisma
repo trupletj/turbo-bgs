@@ -205,6 +205,33 @@ model section {
   policy          policy?  @relation(fields: [policyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
+model profile {
+  id      String   @id @default(uuid())
+  user_id  String   @unique
+  profile_role_id String
+  profile_role profile_role @relation(fields: [profile_role_id], references: [id])
+}
+
+model permission {
+  id         String    @id @default(uuid())
+  name       String?
+  can_create Boolean  @default(false)
+  can_read   Boolean  @default(false)
+  can_update Boolean  @default(false)
+  can_delete Boolean  @default(false)
+  resource   String?
+  path       String[]
+  profile_roles profile_role[]
+}
+
+model profile_role {
+  id         String       @id @default(uuid())
+  name       String
+  permissions permission[]
+  profile profile[]
+}
+
+
 enum Role {
   USER
   HR
