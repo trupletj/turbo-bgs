@@ -1,9 +1,11 @@
+import { getProfile } from "@/action/ProfileService";
 import { auth } from "@/auth";
-import { redirect } from "next/navigation";
-
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SessionProvider } from "next-auth/react";
+import { redirect } from "next/navigation";
+
 export default async function AuditLayout({
   children,
 }: Readonly<{
@@ -13,8 +15,28 @@ export default async function AuditLayout({
   if (!session?.user) {
     redirect("/");
   }
+
+  const profile = await getProfile({
+    where: { user_id: session.user.id },
+  });
+
+  console.log(session);
+  console.log(session.user);
+
+  if (!profile) {
+    return (
+      <div>
+        <h2>Та бүртгүүлэх шаардлагатай байна.</h2>
+      </div>
+    );
+  }
+
+  const allPaths: string[] = session?.user.permissions.flatMap(
+    (perm) => perm.path
+  );
+
   return (
-    <>
+    <SessionProvider>
       <SidebarProvider
         style={
           {
@@ -23,7 +45,7 @@ export default async function AuditLayout({
           } as React.CSSProperties
         }
       >
-        <AppSidebar variant="inset" />
+        <AppSidebar variant="inset" allPaths={allPaths} />
         <SidebarInset>
           <SiteHeader />
           <div className="flex flex-1 flex-col">
@@ -33,6 +55,6 @@ export default async function AuditLayout({
           </div>
         </SidebarInset>
       </SidebarProvider>
-    </>
+    </SessionProvider>
   );
 }

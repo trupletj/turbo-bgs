@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@repo/database";
-import { Section } from "@/types";
+import { Section } from "@/types/index";
 import { section } from "@repo/database/generated/prisma/client";
 
 export const createSection = async (

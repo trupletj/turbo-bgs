@@ -195,19 +195,15 @@ model section {
 }
 
 model profile {
-  id      String   @id @default(uuid())
-  user_id  String   @unique
-  profile_role_id String
-  profile_role profile_role @relation(fields: [profile_role_id], references: [id])
+  id      String         @id @default(uuid())
+  user_id String         @unique
+  profile_roles profile_role[] @relation("ProfileToRoles")
 }
 
 model permission {
   id         String    @id @default(uuid())
   name       String?
-  can_create Boolean  @default(false)
-  can_read   Boolean  @default(false)
-  can_update Boolean  @default(false)
-  can_delete Boolean  @default(false)
+  action    action  @default(READ)
   resource   String?
   path       String[]
   profile_roles profile_role[]
@@ -217,7 +213,14 @@ model profile_role {
   id         String       @id @default(uuid())
   name       String
   permissions permission[]
-  profile profile[]
+  profiles   profile[]    @relation("ProfileToRoles")
+}
+
+enum action {
+  CREATE
+  READ
+  UPDATE
+  DELETE
 }
 
 enum Role {

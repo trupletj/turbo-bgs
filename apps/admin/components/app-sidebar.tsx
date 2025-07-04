@@ -12,9 +12,10 @@ import {
   IconReport,
   IconSearch,
   IconSettings,
+  IconUserCog,
 } from "@tabler/icons-react";
 
-import { BookOpen, Bot, SquareTerminal } from "lucide-react";
+import { BookOpen, Bot, SquareTerminal, UserCog } from "lucide-react";
 
 import { NavDocuments } from "@/components/nav-documents";
 import { NavMain } from "@/components/nav-main";
@@ -39,17 +40,17 @@ const data = {
   navMain: [
     {
       title: "Дүрэм журам",
-      url: "#",
+      url: "/dashboard/policy", //profile_role: {name : ДХШМ}
       icon: SquareTerminal,
       isActive: true,
       items: [
         {
           title: "Нийт",
-          url: "/dashboard/policy",
+          url: "/dashboard/policy", // permission:{ path=/dashboard/policy action=READ }
         },
         {
           title: "Шинэ журам нэмэх",
-          url: "/dashboard/policy/new",
+          url: "/dashboard/policy/new", //  permission:{ path=/dashboard/policy/new action=CREATE }
         },
         {
           title: "Ангилал",
@@ -99,29 +100,25 @@ const data = {
         // },
       ],
     },
-    // {
-    //   title: "Settings",
-    //   url: "#",
-    //   icon: Settings2,
-    //   items: [
-    //     {
-    //       title: "General",
-    //       url: "#",
-    //     },
-    //     {
-    //       title: "Team",
-    //       url: "#",
-    //     },
-    //     {
-    //       title: "Billing",
-    //       url: "#",
-    //     },
-    //     {
-    //       title: "Limits",
-    //       url: "#",
-    //     },
-    //   ],
-    // },
+    {
+      title: "Админ тохиргоо",
+      url: "#",
+      icon: UserCog,
+      items: [
+        {
+          title: "Permission Control",
+          url: "/dashboard/admin/permissions",
+        },
+        {
+          title: "Role Control",
+          url: "/dashboard/admin/roles",
+        },
+        {
+          title: "Хэрэглэгчийн бүртгэл",
+          url: "/dashboard/admin/users",
+        },
+      ],
+    },
   ],
   navClouds: [
     {
@@ -188,26 +185,32 @@ const data = {
       icon: IconSearch,
     },
   ],
-  documents: [
-    {
-      name: "Бичиг баримт",
-      url: "#",
-      icon: IconDatabase,
-    },
-    {
-      name: "Тайлан",
-      url: "#",
-      icon: IconReport,
-    },
-    {
-      name: "Туслах",
-      url: "#",
-      icon: IconFileWord,
-    },
-  ],
+  // documents: [
+  //   {
+  //     name: "Бичиг баримт",
+  //     url: "#",
+  //     icon: IconDatabase,
+  //   },
+  //   {
+  //     name: "Тайлан",
+  //     url: "#",
+  //     icon: IconReport,
+  //   },
+  //   {
+  //     name: "Туслах",
+  //     url: "#",
+  //     icon: IconFileWord,
+  //   },
+  // ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
+  allPaths: string[]; // шинэ prop нэмж байна
+};
+
+export function AppSidebar({ allPaths, ...props }: AppSidebarProps) {
+  console.log("ALLPATHS in App Side Bar =====>", allPaths);
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -219,19 +222,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="#">
                 <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">BGS.MN</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
+        <NavMain items={data.navMain} allPaths={allPaths} />
+        {/* <NavDocuments items={data.documents} /> */}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   );

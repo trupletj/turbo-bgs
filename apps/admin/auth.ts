@@ -19,8 +19,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new CredentialsSignin("Register number is required.");
         }
 
-        // OTP шалгах шат
-
         const user = await findByRegister(
           credentials.register_number.toString()
         );
@@ -56,8 +54,45 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
     signIn: "/login",
   },
+  callbacks: {
+    async jwt({ token, account, user }) {
+      if (user) {
+        const profile = await prisma.profile.findUnique({
+          where: { user_id: user.id },
+          include: {
+            profile_roles: {
+              include: {
+                permissions: true,
+              },
+            },
+          },
+        });
+
+        const roles =
+          profile?.profile_roles.map((role) => ({ name: role.name })) ?? [];
+
+        const permissions = profile?.profile_roles
+          .flatMap((role) => role.permissions)
+          .map((perm) => ({
+            resource: perm.resource,
+            path: perm.path,
+            action: perm.action,
+          }));
+
+        token.id = user.id;
+        token.roles = roles;
+        token.permissions = permissions ?? [];
+      }
+
+      return token;
+    },
+
+    async session({ session, token }) {
+      session.user.id = token.id as string;
+      session.user.roles = token.roles ?? [];
+      session.user.permissions = token.permissions ?? [];
+      return session;
+    },
+  },
   session: { strategy: "jwt" },
 });
-
-
-

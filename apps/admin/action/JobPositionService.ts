@@ -209,12 +209,23 @@ export const getAllJobPositions = async () => {
   }
 };
 
-
-export const getJobPositions = async(args: Prisma.job_positionFindManyArgs = {},
+export const getJobPositions = async (
+  args: Prisma.job_positionFindManyArgs = {}
 ) => {
-  try{
-    return prisma.job_position.findMany(args)
-  }catch(e){
-    console.log(e)
+  try {
+    return prisma.job_position.findMany(args);
+  } catch (e) {
+    console.log(e);
   }
-} 
+};
+
+export const getJobPostionOne = async (
+  args: Prisma.job_positionFindUniqueArgs
+) => {
+  try {
+    return prisma.job_position.findUnique(args);
+  } catch (error) {
+    console.error("getJobPostionOne", error);
+    throw new Error("Алдаа гарлаа");
+  }
+};
