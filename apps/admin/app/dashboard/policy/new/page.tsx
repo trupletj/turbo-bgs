@@ -28,6 +28,7 @@ interface ClauseItemProps {
     text: string
   ) => void;
   addSubClause: (sectionIndex: number, path: number[]) => void;
+  insertClauseBefore: (sectionIndex: number, path: number[]) => void;
   deleteClause: (sectionIndex: number, path: number[]) => void;
   parentRefNumber: string;
   level?: number;
@@ -40,6 +41,7 @@ const ClauseItem = ({
   path,
   updateClauseText,
   addSubClause,
+  insertClauseBefore,
   deleteClause,
   level = 1,
   isProcessing,
@@ -53,22 +55,34 @@ const ClauseItem = ({
           onChange={(e) => updateClauseText(sectionIndex, path, e.target.value)}
           placeholder="Заалтын текст оруулна уу"
           className="flex-1 p-2 border rounded"
+          disabled={isProcessing}
         />
+        <Button
+          type="button"
+          variant="link"
+          onClick={() => insertClauseBefore(sectionIndex, path)}
+          disabled={isProcessing}
+          aria-label="Заалт нэмэх (өмнө)"
+        >
+          + Заалт (өмнө)
+        </Button>
         {level < 4 && (
           <Button
             type="button"
-            variant={"link"}
+            variant="link"
             onClick={() => addSubClause(sectionIndex, path)}
             disabled={isProcessing}
+            aria-label="Дэд заалт нэмэх"
           >
             + Дэд заалт
           </Button>
         )}
         <Button
           type="button"
-          variant={"destructive"}
+          variant="destructive"
           onClick={() => deleteClause(sectionIndex, path)}
           disabled={isProcessing}
+          aria-label="Заалт устгах"
         >
           - Устгах
         </Button>
@@ -87,6 +101,7 @@ const ClauseItem = ({
               path={[...path, subClauseIndex]}
               updateClauseText={updateClauseText}
               addSubClause={addSubClause}
+              insertClauseBefore={insertClauseBefore}
               deleteClause={deleteClause}
               parentRefNumber={subClause.referenceNumber}
               level={level + 1}
@@ -109,51 +124,91 @@ const NewPolicy = () => {
   });
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Бүлэг нэмэх
+  // Helper to update clause reference numbers
+  const updateClauseNumbers = useCallback(
+    (clauses: Clause[], parentRef: string): Clause[] =>
+      clauses.map((clause, idx) => ({
+        ...clause,
+        referenceNumber: `${parentRef}.${idx + 1}`,
+        children: updateClauseNumbers(
+          clause.children ?? [],
+          `${parentRef}.${idx + 1}`
+        ),
+      })),
+    []
+  );
+
+  // Add Section
   const addSection = useCallback(() => {
     if (isProcessing) return;
-    setPolicyData((prev) => ({
-      ...prev,
-      sections: [
+    setIsProcessing(true);
+    setPolicyData((prev) => {
+      const newSections = [
         ...prev.sections,
         {
           referenceNumber: `${prev.sections.length + 1}`,
           text: "",
           clauses: [],
         },
-      ],
-    }));
+      ];
+      return { ...prev, sections: newSections };
+    });
+    setIsProcessing(false);
   }, [isProcessing]);
 
-  // Бүлэг устгах
+  // Insert Section Before
+  const insertSectionBefore = useCallback(
+    (sectionIndex: number) => {
+      if (isProcessing) return;
+      setIsProcessing(true);
+      setPolicyData((prev) => {
+        const newSections = JSON.parse(JSON.stringify(prev.sections));
+        newSections.splice(sectionIndex, 0, {
+          referenceNumber: `${sectionIndex + 1}`,
+          text: "",
+          clauses: [],
+        });
+        return {
+          ...prev,
+          sections: newSections.map(
+            (section: { clauses: Clause[] }, idx: number) => ({
+              ...section,
+              referenceNumber: `${idx + 1}`,
+              clauses: updateClauseNumbers(section.clauses, `${idx + 1}`),
+            })
+          ),
+        };
+      });
+      setIsProcessing(false);
+    },
+    [isProcessing, updateClauseNumbers]
+  );
+
+  // Delete Section
   const deleteSection = useCallback(
     (sectionIndex: number) => {
       if (isProcessing) return;
-      setPolicyData((prev) => ({
-        ...prev,
-        sections: prev.sections
-          .filter((_, idx) => idx !== sectionIndex)
-          .map((section, idx) => ({
+      setIsProcessing(true);
+      setPolicyData((prev) => {
+        const newSections = JSON.parse(JSON.stringify(prev.sections))
+          .filter((_: any, idx: number) => idx !== sectionIndex)
+          .map((section: { clauses: Clause[] }, idx: number) => ({
             ...section,
             referenceNumber: `${idx + 1}`,
-            clauses: section.clauses.map((clause, clauseIdx) => ({
-              ...clause,
-              referenceNumber: `${idx + 1}.${clauseIdx + 1}`,
-              children: updateClauseNumbers(
-                clause.children ?? [],
-                `${idx + 1}.${clauseIdx + 1}`
-              ),
-            })),
-          })),
-      }));
+            clauses: updateClauseNumbers(section.clauses, `${idx + 1}`),
+          }));
+        return { ...prev, sections: newSections };
+      });
+      setIsProcessing(false);
     },
-    [isProcessing]
+    [isProcessing, updateClauseNumbers]
   );
 
-  // Заалт нэмэх
+  // Add Clause
   const addClause = useCallback(
     (sectionIndex: number) => {
       if (isProcessing) return;
+      setIsProcessing(true);
       setPolicyData((prev) => {
         const newSections = JSON.parse(JSON.stringify(prev.sections));
         const section = newSections[sectionIndex];
@@ -165,14 +220,60 @@ const NewPolicy = () => {
         section.clauses = [...section.clauses, newClause];
         return { ...prev, sections: newSections };
       });
+      setIsProcessing(false);
     },
     [isProcessing]
   );
 
-  // Дэд заалт нэмэх
+  // Insert Clause Before
+  const insertClauseBefore = useCallback(
+    (sectionIndex: number, path: number[]) => {
+      if (isProcessing) return;
+      setIsProcessing(true);
+      setPolicyData((prev) => {
+        const newSections = JSON.parse(JSON.stringify(prev.sections));
+        const section = newSections[sectionIndex];
+        let current = section.clauses;
+        for (let i = 0; i < path.length - 1; i++) {
+          current = current[path[i]].children!;
+        }
+        const insertIndex = path[path.length - 1];
+        const parentRef =
+          path.length === 1
+            ? section.referenceNumber
+            : (current[0]?.referenceNumber.split(".").slice(0, -1).join(".") ??
+              section.referenceNumber);
+        const newClause: Clause = {
+          text: "",
+          referenceNumber: `${parentRef}.${insertIndex + 1}`,
+          children: [],
+        };
+        current.splice(insertIndex, 0, newClause);
+        if (path.length === 1) {
+          section.clauses = updateClauseNumbers(current, parentRef);
+        } else {
+          let parent = section.clauses;
+          for (let i = 0; i < path.length - 2; i++) {
+            parent = parent[path[i]].children!;
+          }
+          parent[path[path.length - 2]] = {
+            ...parent[path[path.length - 2]],
+            children: updateClauseNumbers(current, parentRef),
+          };
+        }
+        newSections[sectionIndex] = section;
+        return { ...prev, sections: newSections };
+      });
+      setIsProcessing(false);
+    },
+    [isProcessing, updateClauseNumbers]
+  );
+
+  // Add Sub-Clause
   const addSubClause = useCallback(
     (sectionIndex: number, path: number[]) => {
       if (isProcessing) return;
+      setIsProcessing(true);
       setPolicyData((prev) => {
         const newSections = JSON.parse(JSON.stringify(prev.sections));
         const section = newSections[sectionIndex];
@@ -190,25 +291,28 @@ const NewPolicy = () => {
           ...(parentClause.children ?? []),
           newSubClause,
         ];
+        newSections[sectionIndex] = section;
+        return { ...prev, sections: newSections };
+      });
+      setIsProcessing(false);
+    },
+    [isProcessing]
+  );
+
+  // Update Section Text
+  const updateSectionText = useCallback(
+    (sectionIndex: number, text: string) => {
+      if (isProcessing) return;
+      setPolicyData((prev) => {
+        const newSections = JSON.parse(JSON.stringify(prev.sections));
+        newSections[sectionIndex] = { ...newSections[sectionIndex], text };
         return { ...prev, sections: newSections };
       });
     },
     [isProcessing]
   );
 
-  // Бүлгийн текст шинэчлэх
-  const updateSectionText = useCallback(
-    (sectionIndex: number, text: string) => {
-      setPolicyData((prev) => {
-        const newSections = [...prev.sections];
-        newSections[sectionIndex] = { ...newSections[sectionIndex], text };
-        return { ...prev, sections: newSections };
-      });
-    },
-    []
-  );
-
-  // Заалтын текст шинэчлэх
+  // Update Clause Text
   const updateClauseText = useCallback(
     (sectionIndex: number, path: number[], text: string) => {
       if (isProcessing) return;
@@ -223,16 +327,18 @@ const NewPolicy = () => {
           ...current[path[path.length - 1]],
           text,
         };
+        newSections[sectionIndex] = section;
         return { ...prev, sections: newSections };
       });
     },
     [isProcessing]
   );
 
-  // Заалт устгах
+  // Delete Clause
   const deleteClause = useCallback(
     (sectionIndex: number, path: number[]) => {
       if (isProcessing) return;
+      setIsProcessing(true);
       setPolicyData((prev) => {
         const newSections = JSON.parse(JSON.stringify(prev.sections));
         const section = newSections[sectionIndex];
@@ -247,42 +353,43 @@ const NewPolicy = () => {
             : current.length > 0
               ? current[0].referenceNumber.split(".").slice(0, -1).join(".")
               : section.referenceNumber;
-        current.forEach((clause: Clause, idx: number) => {
-          clause.referenceNumber = `${parentRef}.${idx + 1}`;
-          clause.children = updateClauseNumbers(
-            clause.children ?? [],
-            `${parentRef}.${idx + 1}`
-          );
-        });
+        if (path.length === 1) {
+          section.clauses = updateClauseNumbers(current, parentRef);
+        } else {
+          let parent = section.clauses;
+          for (let i = 0; i < path.length - 2; i++) {
+            parent = parent[path[i]].children!;
+          }
+          parent[path[path.length - 2]] = {
+            ...parent[path[path.length - 2]],
+            children: updateClauseNumbers(current, parentRef),
+          };
+        }
+        newSections[sectionIndex] = section;
         return { ...prev, sections: newSections };
       });
+      setIsProcessing(false);
     },
-    [isProcessing]
+    [isProcessing, updateClauseNumbers]
   );
-
-  // Дэд заалтын дугаарлалтыг шинэчлэх
-  const updateClauseNumbers = (
-    clauses: Clause[],
-    parentRef: string
-  ): Clause[] => {
-    return clauses.map((clause, idx) => ({
-      ...clause,
-      referenceNumber: `${parentRef}.${idx + 1}`,
-      children: updateClauseNumbers(
-        clause.children ?? [],
-        `${parentRef}.${idx + 1}`
-      ),
-    }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isProcessing) return;
     setIsProcessing(true);
     const toastId = toast.loading("Журам хадгалж байна...");
 
     try {
       if (!policyData.name || !policyData.referenceCode) {
         throw new Error("Журмын нэр болон дугаар заавал оруулна уу");
+      }
+      if (
+        policyData.sections.some(
+          (section) =>
+            !section.text || section.clauses.some((clause) => !clause.text)
+        )
+      ) {
+        throw new Error("Бүх бүлэг болон заалтууд тексттэй байх ёстой");
       }
 
       // 1. Журам хадгалах
@@ -335,7 +442,7 @@ const NewPolicy = () => {
                 referenceNumber: clause.referenceNumber,
                 sectionId,
                 parentId,
-                policyId, // Шинэ талбар
+                policyId,
               }),
             });
 
@@ -381,7 +488,11 @@ const NewPolicy = () => {
       <form onSubmit={handleSubmit}>
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Шинэ Журам Үүсгэх</h1>
-          <Button type="submit" disabled={isProcessing}>
+          <Button
+            type="submit"
+            disabled={isProcessing}
+            aria-label="Журам хадгалах"
+          >
             Хадгалах
           </Button>
         </div>
@@ -402,6 +513,7 @@ const NewPolicy = () => {
               }
               className="mt-1 p-2 w-full border border-gray-300 rounded"
               placeholder="Журмын дугаарыг оруулна уу"
+              disabled={isProcessing}
             />
           </div>
 
@@ -420,6 +532,8 @@ const NewPolicy = () => {
               }
               className="mt-1 p-2 w-full border border-gray-300 rounded"
               placeholder="Журмын нэрийг оруулна уу"
+              maxLength={250}
+              disabled={isProcessing}
             />
           </div>
 
@@ -438,6 +552,7 @@ const NewPolicy = () => {
               dateFormat="yyyy/MM/dd"
               placeholderText="Журмын баталсан огноо"
               className="mt-1 p-2 w-full border border-gray-300 rounded"
+              disabled={isProcessing}
             />
           </div>
         </div>
@@ -447,67 +562,83 @@ const NewPolicy = () => {
             <h2 className="text-xl font-semibold">Бүлгүүд</h2>
             <Button
               type="button"
-              variant={"outline"}
+              variant="outline"
               onClick={addSection}
               disabled={isProcessing}
+              aria-label="Бүлэг нэмэх"
             >
               + Бүлэг нэмэх
             </Button>
           </div>
 
           {policyData.sections.map((section, sectionIndex) => (
-            <div
-              key={section.id || sectionIndex}
-              className="mt-4 p-4 border rounded"
-            >
-              <div className="flex items-center gap-4">
-                <span className="font-bold">{section.referenceNumber}.</span>
-                <Textarea
-                  value={section.text}
-                  onChange={(e) =>
-                    updateSectionText(sectionIndex, e.target.value)
-                  }
-                  placeholder="Бүлгийн текст оруулна уу"
-                  className="flex-1 p-2 border rounded"
-                />
+            <div key={section.id || sectionIndex}>
+              {sectionIndex > 0 && (
                 <Button
                   type="button"
-                  variant={"destructive"}
-                  onClick={() => deleteSection(sectionIndex)}
+                  variant="link"
+                  onClick={() => insertSectionBefore(sectionIndex)}
                   disabled={isProcessing}
+                  className="mb-2"
+                  aria-label="Бүлэг нэмэх (өмнө)"
                 >
-                  - Устгах
+                  + Бүлэг нэмэх (өмнө)
                 </Button>
-              </div>
-
-              <div className="ml-6 mt-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium">Заалтууд</h3>
+              )}
+              <div className="mt-4 p-4 border rounded">
+                <div className="flex items-center gap-4">
+                  <span className="font-bold">{section.referenceNumber}.</span>
+                  <Textarea
+                    value={section.text}
+                    onChange={(e) =>
+                      updateSectionText(sectionIndex, e.target.value)
+                    }
+                    placeholder="Бүлгийн текст оруулна уу"
+                    className="flex-1 p-2 border rounded"
+                    disabled={isProcessing}
+                  />
                   <Button
                     type="button"
-                    variant={"link"}
-                    onClick={() => addClause(sectionIndex)}
+                    variant="destructive"
+                    onClick={() => deleteSection(sectionIndex)}
                     disabled={isProcessing}
+                    aria-label="Бүлэг устгах"
                   >
-                    + Заалт нэмэх
+                    - Устгах
                   </Button>
                 </div>
 
-                {section.clauses.map((clause, clauseIndex) => (
-                  <ClauseItem
-                    key={clause.id || `${sectionIndex}-${clauseIndex}`}
-                    sectionIndex={sectionIndex}
-                    clause={clause}
-                    clauseIndex={clauseIndex}
-                    path={[clauseIndex]}
-                    updateClauseText={updateClauseText}
-                    addSubClause={addSubClause}
-                    deleteClause={deleteClause}
-                    parentRefNumber={section.referenceNumber}
-                    level={1}
-                    isProcessing={isProcessing}
-                  />
-                ))}
+                <div className="ml-6 mt-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium">Заалтууд</h3>
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={() => addClause(sectionIndex)}
+                      disabled={isProcessing}
+                      aria-label="Заалт нэмэх"
+                    >
+                      + Заалт нэмэх
+                    </Button>
+                  </div>
+
+                  {section.clauses.map((clause, clauseIndex) => (
+                    <ClauseItem
+                      key={clause.id || `${sectionIndex}-${clauseIndex}`}
+                      sectionIndex={sectionIndex}
+                      clause={clause}
+                      clauseIndex={clauseIndex}
+                      path={[clauseIndex]}
+                      updateClauseText={updateClauseText}
+                      addSubClause={addSubClause}
+                      insertClauseBefore={insertClauseBefore}
+                      deleteClause={deleteClause}
+                      parentRefNumber={section.referenceNumber}
+                      level={1}
+                      isProcessing={isProcessing}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           ))}

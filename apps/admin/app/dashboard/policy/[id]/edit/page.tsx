@@ -61,6 +61,7 @@ export default function PolicyEditPageWithPositionLink({
         throw new Error(error.error || "Журам олдсонгүй");
       }
       const data: Policy = await response.json();
+      console.log(data);
       console.log("Policy fetched for edit:", {
         id: data.id,
         referenceCode: data.referenceCode,
@@ -100,7 +101,7 @@ export default function PolicyEditPageWithPositionLink({
           text: s.text || "",
           clauses: (s.clause ?? []).map((c) => ({
             id: c.id,
-            policyId: c.policyId || policy.id, // Серверээс ирсэн policyId эсвэл policy.id
+            policyId: c.policyId || policy.id,
             referenceNumber: c.referenceNumber,
             text: c.text,
             sectionId: c.sectionId,

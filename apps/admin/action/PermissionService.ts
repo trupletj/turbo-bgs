@@ -4,15 +4,22 @@ import { prisma } from "@repo/database";
 import { Prisma } from "@repo/database/generated/prisma/client/client";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export const hasAccess = async (
   path: string,
   requestedAction: "CREATE" | "READ" | "UPDATE" | "DELETE"
 ): Promise<boolean> => {
   const session = await auth();
+  if (!session?.user) {
+    redirect("/");
+  }
   const userId = session?.user?.id;
 
   if (!userId) return false;
+
+  if (session?.user?.roles?.some((role) => role.name === "SuperAdmin"))
+    return true;
 
   const permissions = session.user.permissions;
 

@@ -25,12 +25,12 @@ interface PolicyFormProps {
     approvedDate: Date | null;
     sections: Array<{
       id: string;
-      policyId?: string; // Шинэ талбар
+      policyId?: string;
       referenceNumber: string;
       text: string;
       clauses: Array<{
         id: string;
-        policyId?: string; // Шинэ талбар
+        policyId?: string;
         referenceNumber: string;
         text: string;
         sectionId?: string;
@@ -57,10 +57,10 @@ export default function PolicyEditerForm({
   const [sections, setSections] = useState<Section[]>(
     initialData?.sections.map((s) => ({
       ...s,
-      policyId: s.policyId || initialData.id, // policyId-г оруулах
+      policyId: s.policyId || initialData.id,
       clauses: s.clauses.map((c) => ({
         ...c,
-        policyId: c.policyId || initialData.id, // policyId-г оруулах
+        policyId: c.policyId || initialData.id,
       })),
     })) || []
   );
@@ -68,20 +68,49 @@ export default function PolicyEditerForm({
 
   const addSection = useCallback(() => {
     if (isProcessing) return;
+    setIsProcessing(true);
     setSections((prev) => [
       ...prev,
       {
         referenceNumber: `${prev.length + 1}`,
         text: "",
         clauses: [],
-        policyId: initialData?.id, // Шинэ section-д policyId
+        policyId: initialData?.id,
       },
     ]);
     console.log("New section added:", { totalSections: sections.length + 1 });
+    setIsProcessing(false);
   }, [isProcessing, sections.length, initialData?.id]);
+
+  const insertSectionBefore = useCallback(
+    (sectionIndex: number) => {
+      if (isProcessing) return;
+      setIsProcessing(true);
+      setSections((prev) => {
+        const newSections = JSON.parse(JSON.stringify(prev));
+        newSections.splice(sectionIndex, 0, {
+          referenceNumber: `${sectionIndex + 1}`,
+          text: "",
+          clauses: [],
+          policyId: initialData?.id,
+        });
+        return newSections.map(
+          (section: { clauses: Clause[] }, idx: number) => ({
+            ...section,
+            referenceNumber: `${idx + 1}`,
+            clauses: updateClauseNumbers(section.clauses, `${idx + 1}`),
+          })
+        );
+      });
+      console.log("Section inserted before:", { sectionIndex });
+      setIsProcessing(false);
+    },
+    [isProcessing, initialData?.id]
+  );
 
   const deleteSection = useCallback((sectionIndex: number) => {
     if (!confirm("Бүлгийг устгахдаа итгэлтэй байна уу?")) return;
+    setIsProcessing(true);
     setSections((prev) => {
       const section = prev[sectionIndex];
       console.log("Deleting section (UI only):", {
@@ -92,22 +121,17 @@ export default function PolicyEditerForm({
         .map((s, idx) => ({
           ...s,
           referenceNumber: `${idx + 1}`,
-          clauses: s.clauses.map((c, cIdx) => ({
-            ...c,
-            referenceNumber: `${idx + 1}.${cIdx + 1}`,
-            children: updateClauseNumbers(
-              c.children ?? [],
-              `${idx + 1}.${cIdx + 1}`
-            ),
-          })),
+          clauses: updateClauseNumbers(s.clauses, `${idx + 1}`),
         }));
     });
     console.log("Section deleted (UI only)");
+    setIsProcessing(false);
   }, []);
 
   const addClause = useCallback(
     (sectionIndex: number) => {
       if (isProcessing) return;
+      setIsProcessing(true);
       setSections((prev) => {
         const newSections = JSON.parse(JSON.stringify(prev));
         const section = newSections[sectionIndex];
@@ -115,7 +139,7 @@ export default function PolicyEditerForm({
           text: "",
           referenceNumber: `${section.referenceNumber}.${section.clauses.length + 1}`,
           sectionId: section.id,
-          policyId: section.policyId, // Шинэ clause-д policyId
+          policyId: section.policyId,
           children: [],
           positions: [],
         };
@@ -126,6 +150,57 @@ export default function PolicyEditerForm({
         });
         return newSections;
       });
+      setIsProcessing(false);
+    },
+    [isProcessing]
+  );
+
+  const insertClauseBefore = useCallback(
+    (sectionIndex: number, path: number[]) => {
+      if (isProcessing) return;
+      setIsProcessing(true);
+      setSections((prev) => {
+        const newSections = JSON.parse(JSON.stringify(prev));
+        const section = newSections[sectionIndex];
+        let current = section.clauses;
+        for (let i = 0; i < path.length - 1; i++) {
+          current = current[path[i]].children!;
+        }
+        const insertIndex = path[path.length - 1];
+        const parentRef =
+          path.length === 1
+            ? section.referenceNumber
+            : (current[0]?.referenceNumber.split(".").slice(0, -1).join(".") ??
+              section.referenceNumber);
+        const newClause: Clause = {
+          text: "",
+          referenceNumber: `${parentRef}.${insertIndex + 1}`,
+          sectionId: section.id,
+          policyId: section.policyId,
+          children: [],
+          positions: [],
+        };
+        current.splice(insertIndex, 0, newClause);
+        if (path.length === 1) {
+          section.clauses = updateClauseNumbers(current, parentRef);
+        } else {
+          let parent = section.clauses;
+          for (let i = 0; i < path.length - 2; i++) {
+            parent = parent[path[i]].children!;
+          }
+          parent[path[path.length - 2]] = {
+            ...parent[path[path.length - 2]],
+            children: updateClauseNumbers(current, parentRef),
+          };
+        }
+        newSections[sectionIndex] = section;
+        console.log("Clause inserted before:", {
+          section: section.referenceNumber,
+          clause: newClause.referenceNumber,
+        });
+        return newSections;
+      });
+      setIsProcessing(false);
     },
     [isProcessing]
   );
@@ -133,6 +208,7 @@ export default function PolicyEditerForm({
   const addSubClause = useCallback(
     (sectionIndex: number, path: number[]) => {
       if (isProcessing) return;
+      setIsProcessing(true);
       setSections((prev) => {
         const newSections = JSON.parse(JSON.stringify(prev));
         const section = newSections[sectionIndex];
@@ -145,7 +221,7 @@ export default function PolicyEditerForm({
           text: "",
           referenceNumber: `${parentClause.referenceNumber}.${(parentClause.children?.length ?? 0) + 1}`,
           sectionId: section.id,
-          policyId: section.policyId, // Шинэ sub-clause-д policyId
+          policyId: section.policyId,
           children: [],
           positions: [],
         };
@@ -159,6 +235,7 @@ export default function PolicyEditerForm({
         });
         return newSections;
       });
+      setIsProcessing(false);
     },
     [isProcessing]
   );
@@ -166,7 +243,7 @@ export default function PolicyEditerForm({
   const updateSectionText = useCallback(
     (sectionIndex: number, text: string) => {
       setSections((prev) => {
-        const newSections = [...prev];
+        const newSections = JSON.parse(JSON.stringify(prev));
         newSections[sectionIndex] = { ...newSections[sectionIndex], text };
         console.log("Section text updated:", {
           referenceNumber: newSections[sectionIndex].referenceNumber,
@@ -232,6 +309,7 @@ export default function PolicyEditerForm({
   const deleteClause = useCallback(
     (sectionIndex: number, path: number[]) => {
       if (isProcessing) return;
+      setIsProcessing(true);
       setSections((prev) => {
         const newSections = JSON.parse(JSON.stringify(prev));
         const section = newSections[sectionIndex];
@@ -247,19 +325,26 @@ export default function PolicyEditerForm({
             : current.length > 0
               ? current[0].referenceNumber.split(".").slice(0, -1).join(".")
               : section.referenceNumber;
-        current.forEach((clause: Clause, idx: number) => {
-          clause.referenceNumber = `${parentRef}.${idx + 1}`;
-          clause.children = updateClauseNumbers(
-            clause.children ?? [],
-            `${parentRef}.${idx + 1}`
-          );
-        });
+        if (path.length === 1) {
+          section.clauses = updateClauseNumbers(current, parentRef);
+        } else {
+          let parent = section.clauses;
+          for (let i = 0; i < path.length - 2; i++) {
+            parent = parent[path[i]].children!;
+          }
+          parent[path[path.length - 2]] = {
+            ...parent[path[path.length - 2]],
+            children: updateClauseNumbers(current, parentRef),
+          };
+        }
+        newSections[sectionIndex] = section;
         console.log("Clause deleted:", {
           referenceNumber: deletedClause.referenceNumber,
           remainingClauses: current.length,
         });
         return newSections;
       });
+      setIsProcessing(false);
     },
     [isProcessing]
   );
@@ -284,7 +369,6 @@ export default function PolicyEditerForm({
     const toastId = toast.loading("Журам хадгалж байна...");
 
     try {
-      // Валидаци
       if (!policyData.name || !policyData.referenceCode) {
         throw new Error("Журмын нэр болон дугаар заавал оруулна уу");
       }
@@ -336,7 +420,6 @@ export default function PolicyEditerForm({
         }
       });
 
-      // Устгагдсан бүлгүүдийг сервер рүү илгээх
       for (const deletedSection of deletedSections) {
         if (deletedSection.id) {
           console.log("Deleting section on server:", {
@@ -352,7 +435,6 @@ export default function PolicyEditerForm({
         }
       }
 
-      // Устгагдсан заалтуудыг сервер рүү илгээх
       for (const { clauseId } of deletedClauses) {
         console.log("Deleting clause on server:", { clauseId });
         const response = await fetch(`/api/clause?id=${clauseId}`, {
@@ -422,7 +504,7 @@ export default function PolicyEditerForm({
                 text: clause.text,
                 referenceNumber: clause.referenceNumber,
                 parentId,
-                policyId, // Шинэ талбар
+                policyId,
                 positions: clause.positions,
               }),
             });
@@ -476,11 +558,12 @@ export default function PolicyEditerForm({
                 variant="outline"
                 onClick={onCancel}
                 disabled={isProcessing}
+                aria-label="Цуцлах"
               >
                 Цуцлах
               </Button>
             )}
-            <Button type="submit" disabled={isProcessing}>
+            <Button type="submit" disabled={isProcessing} aria-label="Хадгалах">
               Хадгалах
             </Button>
           </div>
@@ -502,6 +585,7 @@ export default function PolicyEditerForm({
               }
               className="mt-1 p-2 w-full border border-gray-300 rounded"
               placeholder="Журмын дугаарыг оруулна уу"
+              disabled={isProcessing}
             />
           </div>
 
@@ -520,6 +604,8 @@ export default function PolicyEditerForm({
               }
               className="mt-1 p-2 w-full border border-gray-300 rounded"
               placeholder="Журмын нэрийг оруулна уу"
+              maxLength={250}
+              disabled={isProcessing}
             />
           </div>
 
@@ -538,6 +624,7 @@ export default function PolicyEditerForm({
               dateFormat="yyyy/MM/dd"
               placeholderText="Журмын баталсан огноо"
               className="mt-1 p-2 w-full border border-gray-300 rounded"
+              disabled={isProcessing}
             />
           </div>
         </div>
@@ -550,65 +637,81 @@ export default function PolicyEditerForm({
               variant="outline"
               onClick={addSection}
               disabled={isProcessing}
+              aria-label="Бүлэг нэмэх"
             >
               + Бүлэг нэмэх
             </Button>
           </div>
 
           {sections.map((section, sectionIndex) => (
-            <div
-              key={section.id || sectionIndex}
-              className="mt-4 p-4 border rounded"
-            >
-              <div className="flex items-center gap-4">
-                <span className="font-bold">{section.referenceNumber}.</span>
-                <Textarea
-                  value={section.text}
-                  onChange={(e) =>
-                    updateSectionText(sectionIndex, e.target.value)
-                  }
-                  placeholder="Бүлгийн текст оруулна уу"
-                  className="flex-1 p-2 border rounded"
-                />
+            <div key={section.id || sectionIndex}>
+              {sectionIndex >= 0 && (
                 <Button
                   type="button"
-                  variant="destructive"
-                  onClick={() => deleteSection(sectionIndex)}
+                  variant="link"
+                  onClick={() => insertSectionBefore(sectionIndex)}
                   disabled={isProcessing}
+                  className="mb-2"
+                  aria-label="Бүлэг нэмэх (өмнө)"
                 >
-                  - Устгах
+                  + Бүлэг нэмэх (өмнө)
                 </Button>
-              </div>
-
-              <div className="ml-6 mt-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium">Заалтууд</h3>
+              )}
+              <div className="mt-4 p-4 border rounded">
+                <div className="flex items-center gap-4">
+                  <span className="font-bold">{section.referenceNumber}.</span>
+                  <Textarea
+                    value={section.text}
+                    onChange={(e) =>
+                      updateSectionText(sectionIndex, e.target.value)
+                    }
+                    placeholder="Бүлгийн текст оруулна уу"
+                    className="flex-1 p-2 border rounded"
+                    disabled={isProcessing}
+                  />
                   <Button
                     type="button"
-                    variant="link"
-                    onClick={() => addClause(sectionIndex)}
+                    variant="destructive"
+                    onClick={() => deleteSection(sectionIndex)}
                     disabled={isProcessing}
+                    aria-label="Бүлэг устгах"
                   >
-                    + Заалт нэмэх
+                    - Устгах
                   </Button>
                 </div>
 
-                {section.clauses.map((clause, clauseIndex) => (
-                  <ClauseItem
-                    key={clause.id || `${sectionIndex}-${clauseIndex}`}
-                    sectionIndex={sectionIndex}
-                    clause={clause}
-                    clauseIndex={clauseIndex}
-                    path={[clauseIndex]}
-                    updateClauseText={updateClauseText}
-                    updateClausePositions={updateClausePositions}
-                    addSubClause={addSubClause}
-                    deleteClause={deleteClause}
-                    parentRefNumber={section.referenceNumber}
-                    level={1}
-                    isProcessing={isProcessing}
-                  />
-                ))}
+                <div className="ml-6 mt-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium">Заалтууд</h3>
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={() => addClause(sectionIndex)}
+                      disabled={isProcessing}
+                      aria-label="Заалт нэмэх"
+                    >
+                      + Заалт нэмэх
+                    </Button>
+                  </div>
+
+                  {section.clauses.map((clause, clauseIndex) => (
+                    <ClauseItem
+                      key={clause.id || `${sectionIndex}-${clauseIndex}`}
+                      sectionIndex={sectionIndex}
+                      clause={clause}
+                      clauseIndex={clauseIndex}
+                      path={[clauseIndex]}
+                      updateClauseText={updateClauseText}
+                      updateClausePositions={updateClausePositions}
+                      addSubClause={addSubClause}
+                      insertClauseBefore={insertClauseBefore}
+                      deleteClause={deleteClause}
+                      parentRefNumber={section.referenceNumber}
+                      level={1}
+                      isProcessing={isProcessing}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           ))}

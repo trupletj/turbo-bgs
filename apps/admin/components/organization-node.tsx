@@ -172,7 +172,7 @@ function PositionNode({ position }: { position: TJobPosition }) {
   };
 
   return (
-    <div className="flex items-center p-2 ml-4 rounded-md hover:bg-muted/50">
+    <div className="flex items-center p-2 ml-4 rounded-md hover:bg-muted/50 h-10">
       <Checkbox
         checked={data?.is_checked}
         onCheckedChange={handleCheckChange}

@@ -31,17 +31,9 @@ export default function PolicyList() {
   const fetchPolicies = async () => {
     setIsLoading(true);
     try {
-      console.log("Fetching policies...");
       const response = await fetch(`/api/policy`);
       if (!response.ok) throw new Error("Журмуудыг авахад алдаа гарлаа");
       const data = await response.json();
-      console.log("Татаж авсан журмууд:", {
-        count: data.length,
-        policies: data.map((p: Policy) => ({
-          id: p.id,
-          referenceCode: p.referenceCode,
-        })),
-      });
       setPolicies(data);
     } catch (error) {
       console.error("Fetch policies error:", error);
@@ -54,18 +46,24 @@ export default function PolicyList() {
   const handleDelete = async (id: string) => {
     if (!confirm("Журмыг устгахдаа итгэлтэй байна уу?")) return;
     try {
-      console.log("Deleting policy:", { id });
       const response = await fetch(`/api/policy?id=${id}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Устгахад алдаа гарлаа");
-      console.log("Policy deleted:", { id });
       toast.success("Журам амжилттай устгагдлаа");
       fetchPolicies();
     } catch (error) {
       console.error("Delete policy error:", error);
       toast.error(`Алдаа: ${(error as Error).message}`);
     }
+  };
+
+  // Урт текстийг товчлох функц
+  const truncateText = (text: string | null, maxLength: number = 50) => {
+    if (!text) return "";
+    return text.length > maxLength
+      ? `${text.substring(0, maxLength)}...`
+      : text;
   };
 
   return (
@@ -78,63 +76,67 @@ export default function PolicyList() {
       ) : policies.length === 0 ? (
         <div className="text-center py-8 text-gray-500">Журам олдсонгүй</div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="text-center font-bold bg-gray-100 dark:bg-gray-700 px-4 py-3">
-                Код
-              </TableHead>
-              <TableHead className="text-center font-bold bg-gray-100 dark:bg-gray-700 px-4 py-3">
-                Нэр
-              </TableHead>
-              <TableHead className="text-center font-bold bg-gray-100 dark:bg-gray-700 px-4 py-3">
-                Баталсан огноо
-              </TableHead>
-              <TableHead className="text-center font-bold bg-gray-100 dark:bg-gray-700 px-4 py-3">
-                Үйлдэл
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {policies.map((policy) => (
-              <TableRow key={policy.id}>
-                <TableCell className="w-24 px-2 py-1 truncate">
-                  {" "}
-                  {policy.referenceCode}
-                </TableCell>
-                <TableCell className="px-2 py-1 min-w-[120px]">
-                  {" "}
-                  {policy.name}
-                </TableCell>
-                <TableCell className="px-2 py-1 w-32">
-                  {" "}
-                  {policy.approvedDate
-                    ? new Date(policy.approvedDate).toLocaleDateString("mn-MN")
-                    : "Огноогүй"}
-                </TableCell>
-                <TableCell className="px-2 py-1 w-40">
-                  {" "}
-                  {/* Үйлдлийн товчнууд */}
-                  <div className="flex gap-1">
-                    <Link href={`/dashboard/policy/${policy.id}`}>
-                      <Button variant="outline" size="sm" className="h-8">
-                        Харах
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="h-8"
-                      onClick={() => handleDelete(policy.id)}
-                    >
-                      Устгах
-                    </Button>
-                  </div>
-                </TableCell>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-center font-bold bg-gray-100 dark:bg-gray-700 px-4 py-3 min-w-[100px]">
+                  Код
+                </TableHead>
+                <TableHead className="text-center font-bold bg-gray-100 dark:bg-gray-700 px-4 py-3 min-w-[200px]">
+                  Нэр
+                </TableHead>
+                <TableHead className="text-center font-bold bg-gray-100 dark:bg-gray-700 px-4 py-3 min-w-[120px]">
+                  Баталсан огноо
+                </TableHead>
+                <TableHead className="text-center font-bold bg-gray-100 dark:bg-gray-700 px-4 py-3 min-w-[150px]">
+                  Үйлдэл
+                </TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {policies.map((policy) => (
+                <TableRow key={policy.id}>
+                  <TableCell className="px-4 py-2">
+                    {policy.referenceCode}
+                  </TableCell>
+                  <TableCell className="px-4 py-2">
+                    <div
+                      className=" break-words whitespace-normal"
+                      title={policy.name || ""}
+                    >
+                      {policy.name}
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-2 text-center">
+                    {policy.approvedDate
+                      ? new Date(policy.approvedDate).toLocaleDateString(
+                          "mn-MN"
+                        )
+                      : "Огноогүй"}
+                  </TableCell>
+                  <TableCell className="px-4 py-2">
+                    <div className="flex gap-2 justify-center">
+                      <Link href={`/dashboard/policy/${policy.id}`}>
+                        <Button variant="outline" size="sm" className="h-8">
+                          Харах
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="h-8"
+                        onClick={() => handleDelete(policy.id)}
+                      >
+                        Устгах
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </div>
   );

@@ -1,13 +1,13 @@
-import { auth } from "@/auth";
+import { hasAccess } from "@/action/PermissionService";
 import { redirect } from "next/navigation";
 export default async function AuditLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
-  if (!session?.user) {
-    redirect("/");
+  const isAccess = await hasAccess("/dashboard/admin", "READ");
+  if (!isAccess) {
+    redirect("/dashboard/?error=no-access");
   }
-  return <div className="m-5">{children}</div>;
+  return <div className="m-5">{isAccess && children}</div>;
 }

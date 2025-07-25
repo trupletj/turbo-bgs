@@ -211,7 +211,7 @@ model permission {
 
 model profile_role {
   id         String       @id @default(uuid())
-  name       String
+  name       String   @unique
   permissions permission[]
   profiles   profile[]    @relation("ProfileToRoles")
 }

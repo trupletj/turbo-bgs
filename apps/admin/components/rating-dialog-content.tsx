@@ -12,7 +12,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
+import { ScrollArea } from "./ui/scroll-area";
 import { Button } from "./ui/button";
 import { getPositions } from "@/action/ClausePositionService";
 import { JobPositionWithOrganization } from "@/types/organization";
@@ -81,7 +81,7 @@ const RatingDialogContent = ({
   };
 
   return (
-    <DialogContent className="sm:max-w-[600px] lg:max-w-[1000px] w-full overflow-y-auto h-[80vh]">
+    <DialogContent className="sm:max-w-[600px] lg:max-w-[1000px] w-full h-[80vh]">
       <DialogHeader>
         <DialogTitle className="font-bold text-2xl">Үнэлгээ хийх</DialogTitle>
         <DialogDescription className="font-medium">

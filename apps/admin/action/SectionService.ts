@@ -78,6 +78,24 @@ const sortByReferenceNumber = (sections: section[]) => {
   });
 };
 
+export async function updateSectionField(
+  id: string,
+  field: "referenceNumber" | "text",
+  value: string
+) {
+  try {
+    await prisma.section.update({
+      where: { id, isDeleted: false },
+      data: {
+        [field]: value,
+      },
+    });
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, message: error.message || "Алдаа гарлаа" };
+  }
+}
+
 export const updateSection = async (
   id: string,
   data: Partial<Omit<Section, "id" | "isDeleted">>
