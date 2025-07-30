@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
 import RatingDialogContent from "./rating-dialog-content";
+import { hasAccess } from "@/action/PermissionService";
 
 interface SingleClauseProps {
   clause: TClause;
 }
 
 const SingleClause = async ({ clause }: SingleClauseProps) => {
+  const isRating = await hasAccess("/dashboard/policy/clause/rate", "UPDATE");
   const clause_id = clause.id;
 
   return (
@@ -20,24 +22,26 @@ const SingleClause = async ({ clause }: SingleClauseProps) => {
       <div className="flex-1 flex items-center justify-between gap-2">
         <div className="text-m">{clause.text}</div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <Link href={`/dashboard/policy/${clause.policyId}/${clause.id}`}>
-            <IconLink className="w-4 h-4 cursor-pointer hover:scale-110" />
-          </Link>
+        {isRating && (
+          <div className="flex items-center gap-2 shrink-0">
+            <Link href={`/dashboard/policy/${clause.policyId}/${clause.id}`}>
+              <IconLink className="w-4 h-4 cursor-pointer hover:scale-110" />
+            </Link>
 
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="text-xs px-3 py-1 h-auto">
-                Үнэлэх
-              </Button>
-            </DialogTrigger>
-            <RatingDialogContent
-              id={clause_id}
-              clause_reference_code={clause.referenceNumber}
-              clause_text={clause.text}
-            />
-          </Dialog>
-        </div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="text-xs px-3 py-1 h-auto">
+                  Үнэлэх
+                </Button>
+              </DialogTrigger>
+              <RatingDialogContent
+                id={clause_id}
+                clause_reference_code={clause.referenceNumber}
+                clause_text={clause.text}
+              />
+            </Dialog>
+          </div>
+        )}
       </div>
     </div>
   );

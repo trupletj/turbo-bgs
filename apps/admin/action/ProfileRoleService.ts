@@ -96,6 +96,7 @@ export const updateProfileRoles = async (userId: string, roleIds: string[]) => {
   return await prisma.profile.update({
     where: { user_id: userId },
     data: {
+      role_version: { increment: 1 },
       profile_roles: {
         set: roleIds.map((id) => ({ id })),
       },

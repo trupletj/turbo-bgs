@@ -143,6 +143,61 @@ export const getPolicy = async (id: string) => {
   }
 };
 
+export const getAllPoliciesPage = async ({
+  page = 1,
+  pageSize = 10,
+  search = "",
+}: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+}) => {
+  try {
+    const skip = (page - 1) * pageSize;
+
+    const where: Prisma.policyWhereInput = {
+      isDeleted: false,
+      AND: search
+        ? [
+            {
+              OR: [
+                { name: { contains: search, mode: "insensitive" } },
+                { referenceCode: { contains: search, mode: "insensitive" } },
+              ],
+            },
+          ]
+        : undefined,
+    };
+
+    const [items, total] = await Promise.all([
+      prisma.policy.findMany({
+        where,
+        skip,
+        take: pageSize,
+        select: {
+          id: true,
+          name: true,
+          approvedDate: true,
+          referenceCode: true,
+        },
+        orderBy: {
+          approvedDate: "desc",
+        },
+      }),
+      prisma.policy.count({ where }),
+    ]);
+
+    return {
+      items,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+      currentPage: page,
+    };
+  } catch (error) {
+    throw new Error(`Журмууд хайхад алдаа гарлаа: ${(error as Error).message}`);
+  }
+};
+
 export const getAllPolicies = async () => {
   try {
     return await prisma.policy.findMany({

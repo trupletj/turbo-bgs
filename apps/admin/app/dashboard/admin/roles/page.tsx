@@ -1,7 +1,3 @@
-import {
-  profile_role,
-  permission,
-} from "@repo/database/generated/prisma/client";
 import { getProfileRoles } from "@/action/ProfileRoleService";
 import RoleList from "@/components/role-list";
 import { Button } from "@/components/ui/button";

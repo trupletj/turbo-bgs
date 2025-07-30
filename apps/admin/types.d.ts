@@ -8,6 +8,7 @@ declare module "next-auth" {
       id: string;
       roles: Role[];
       permissions: Permission[];
+      role_version: number;
     } & DefaultSession["user"];
   }
 
@@ -21,6 +22,7 @@ declare module "next-auth/jwt" {
     id: string;
     roles: Role[];
     permissions: Permission[];
+    role_version: number;
   }
 }
 type Role = {

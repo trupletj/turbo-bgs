@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getPolicyOne } from "@/action/PolicyService";
 import { policy } from "@repo/database/generated/prisma/client/client";
 import SectionList from "@/components/section-list";
+import { hasAccess } from "@/action/PermissionService";
 
 interface PolicyDetailPageProps {
   params: Promise<{ id: string }>;
@@ -12,6 +13,7 @@ export default async function PolicyDetailPageTest({
   params,
 }: PolicyDetailPageProps) {
   const { id } = await params;
+  const isEditAccess = await hasAccess("/dashboard/policy/edit", "UPDATE");
 
   const policy: policy | null = await getPolicyOne({
     where: { id, isDeleted: false },
@@ -34,9 +36,13 @@ export default async function PolicyDetailPageTest({
               Буцах
             </Button>
           </Link>
-          <Link href={`/dashboard/policy/${policy?.id}/edit`}>
-            <Button>Засварлах</Button>
-          </Link>
+          {isEditAccess && (
+            <Link href={`/dashboard/policy/${policy?.id}/edit`}>
+              <Button variant="secondary" className="ml-2">
+                Засварлах
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 

@@ -1,15 +1,12 @@
 import PolicyList from "@/components/PolicyList";
-import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
-import { toast } from "react-toastify";
 
 export default async function Page() {
-  const params = useSearchParams();
-  useEffect(() => {
-    if (params.get("error") === "no-access") {
-      toast.error("Таны эрх хүрэлцэхгүй байна");
-    }
-  }, [params]);
+  // const params = useSearchParams();
+  // useEffect(() => {
+  //   if (params.get("error") === "no-access") {
+  //     toast.error("Таны эрх хүрэлцэхгүй байна");
+  //   }
+  // }, [params]);
   return (
     <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="px-4 lg:px-6">

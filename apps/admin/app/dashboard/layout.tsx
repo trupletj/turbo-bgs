@@ -1,4 +1,3 @@
-import { getProfile } from "@/action/ProfileService";
 import { auth } from "@/auth";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -16,20 +15,8 @@ export default async function AuditLayout({
     redirect("/");
   }
 
-  const profile = await getProfile({
-    where: { user_id: session.user.id },
-  });
-
   console.log(session);
   console.log(session.user);
-
-  if (!profile) {
-    return (
-      <div>
-        <h2>Та бүртгүүлэх шаардлагатай байна.</h2>
-      </div>
-    );
-  }
 
   const allPaths: string[] = session?.user.permissions.flatMap(
     (perm) => perm.path

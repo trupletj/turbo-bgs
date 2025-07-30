@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { profile_role as Role } from "@repo/database/generated/prisma/client/client";
 import { toast } from "react-toastify";
-import { redirect, useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 import {
   getProfileRoles,
   getProfileByUserId,
@@ -69,11 +69,6 @@ const UserRoleEditPage = ({
     try {
       setIsLoading(true);
       await updateProfileRoles(userId, Array.from(selectedRoles));
-
-      toast.success("Хэрэглэгчийн эрх амжилттай шинэчлэгдлээ", {
-        autoClose: 1000,
-        onClose: () => redirect("/dashboard/admin/users"),
-      });
     } catch (error) {
       console.error("Error saving roles:", error);
       toast.error("Эрх шинэчлэхэд алдаа гарлаа");

@@ -12,7 +12,7 @@ import {
 import { permission as Permission } from "@repo/database/generated/prisma/client/client";
 import { toast } from "react-toastify";
 import Link from "next/link";
-import { deletePermission, getPermissions } from "@/action/PermissionService";
+import { deletePermission } from "@/action/PermissionService";
 
 const PermissionList = ({
   permissions_list,

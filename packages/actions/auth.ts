@@ -10,7 +10,16 @@ export async function matchUserInfo(register_number: string, phone: string) {
   });
   if (!user || user.phone !== phone) {
     // буруу өгөгдөл ирсэн
-    return { type: "error", errorMsg: "Aldaa garlaa" };
+    return { type: "error", errorMsg: "Алдаа гарлаа." };
+  }
+
+  const user_profile = await prisma.profile.findUnique({
+    where: {
+      user_id: user.id,
+    },
+  });
+  if (!user_profile) {
+    return { type: "error", errorMsg: "Бүртгэл үүсээгүй байна." };
   }
 
   const code = "" + Math.floor(100000 + Math.random() * 900000);

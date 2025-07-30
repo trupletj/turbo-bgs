@@ -1,17 +1,9 @@
-import {
-  profile_role,
-  permission,
-} from "@repo/database/generated/prisma/client";
 import { getProfileRole } from "@/action/ProfileRoleService";
 import EditRoleForm from "@/components/edit-role-form";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-
-const ProfileRoleEditPage = async ({
-  params,
-}: {
-  params: { role_id: string };
-}) => {
+export default async function ProfileRoleEditPage(props: {
+  params: Promise<{ role_id: string }>;
+}) {
+  const params = await props.params;
   const role = await getProfileRole({
     where: { id: params.role_id },
     include: { permissions: true },
@@ -32,6 +24,4 @@ const ProfileRoleEditPage = async ({
       <EditRoleForm profile_role={role} />
     </div>
   );
-};
-
-export default ProfileRoleEditPage;
+}

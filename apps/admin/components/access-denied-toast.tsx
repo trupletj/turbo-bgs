@@ -1,7 +1,6 @@
 "use client";
 
-import { formatDuration } from "date-fns";
-import { useSearchParams } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 
@@ -11,6 +10,7 @@ export const AccessToast = () => {
   useEffect(() => {
     if (params.get("error") === "no-access") {
       toast.error("Таны эрх хүрэлцэхгүй байна", { autoClose: 1500 });
+      redirect("/dashboard");
     }
   }, [params]);
 

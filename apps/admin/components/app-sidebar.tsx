@@ -3,21 +3,16 @@
 import * as React from "react";
 import {
   IconCamera,
-  IconDatabase,
   IconFileAi,
   IconFileDescription,
-  IconFileWord,
   IconHelp,
   IconInnerShadowTop,
-  IconReport,
   IconSearch,
   IconSettings,
-  IconUserCog,
 } from "@tabler/icons-react";
 
 import { BookOpen, Bot, SquareTerminal, UserCog } from "lucide-react";
 
-import { NavDocuments } from "@/components/nav-documents";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";

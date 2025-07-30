@@ -14,9 +14,8 @@ import { getJobPostionOne } from "@/action/JobPositionService";
 import { Button } from "./ui/button";
 import { profile_role as Role } from "@repo/database/generated/prisma/client/client";
 import { getProfileRoles } from "@/action/ProfileRoleService";
-import { createProfile, getProfile } from "@/action/ProfileService"; // Импортлох
+import { createProfile, getProfile } from "@/action/ProfileService";
 import { toast } from "react-toastify";
-import { redirect } from "next/navigation";
 
 const UserSearchForm = () => {
   const [query, setQuery] = useState("");
@@ -99,7 +98,7 @@ const UserSearchForm = () => {
       toast.success("Хэрэглэгчийг амжилттай бүртгэлээ", {
         autoClose: 1500,
         onClose: () => {
-          window.location.href = "/dashboard/admin/users"; // Use window.location for client-side redirect
+          window.location.href = "/dashboard/admin/users";
         },
       });
     } catch (error) {
@@ -146,7 +145,6 @@ const UserSearchForm = () => {
         </CommandList>
       </Command>
 
-      {/* Сонгосон хэрэглэгчийн дэлгэрэнгүй мэдээлэл харуулах */}
       {selectedUser && (
         <div className="border p-4 rounded-md bg-gray-50">
           <h2 className="text-lg font-semibold">
@@ -189,7 +187,13 @@ const UserSearchForm = () => {
             </div>
           </div>
 
-          <Button onClick={handleSaveProfile}>Бүртгэх</Button>
+          {isPending ? (
+            <div className="text-center text-gray-500">
+              Бүртгэл хийгдэж байна...
+            </div>
+          ) : (
+            <Button onClick={handleSaveProfile}>Бүртгэх</Button>
+          )}
         </div>
       )}
     </div>

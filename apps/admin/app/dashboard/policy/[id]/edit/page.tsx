@@ -96,7 +96,7 @@ export default function PolicyEditPageWithPositionLink({
           : null,
         sections: (policy.section ?? []).map((s) => ({
           id: s.id,
-          policyId: s.policyId, // Шинэ талбар
+          policyId: s.policyId,
           referenceNumber: s.referenceNumber,
           text: s.text || "",
           clauses: (s.clause ?? []).map((c) => ({

@@ -82,6 +82,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.id = user.id;
         token.roles = roles;
         token.permissions = permissions ?? [];
+        token.role_version = profile?.role_version ?? 0;
       }
 
       return token;
@@ -91,8 +92,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.id = token.id as string;
       session.user.roles = token.roles ?? [];
       session.user.permissions = token.permissions ?? [];
+      session.user.role_version = token.role_version ?? 0;
       return session;
     },
   },
-  session: { strategy: "jwt", maxAge: 60 * 60 },
+  session: { strategy: "jwt", maxAge: 60 * 60 * 8 },
 });

@@ -191,7 +191,7 @@ const NewPolicy = () => {
       setIsProcessing(true);
       setPolicyData((prev) => {
         const newSections = JSON.parse(JSON.stringify(prev.sections))
-          .filter((_: any, idx: number) => idx !== sectionIndex)
+          .filter((_: Section, idx: number) => idx !== sectionIndex)
           .map((section: { clauses: Clause[] }, idx: number) => ({
             ...section,
             referenceNumber: `${idx + 1}`,

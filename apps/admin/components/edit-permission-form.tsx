@@ -1,13 +1,12 @@
 "use client";
 
 import React from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, SubmitHandler } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { permission as Permission } from "@repo/database/generated/prisma/client/client";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -27,6 +26,14 @@ import { toast } from "react-toastify";
 import { z } from "zod";
 import { Plus, Trash2 } from "lucide-react";
 
+interface PermissionFormData {
+  id?: string;
+  name: string;
+  action: "CREATE" | "READ" | "UPDATE" | "DELETE";
+  resource: string;
+  path: string[]; // Array of strings for paths
+}
+
 const actionEnum = z.enum(["CREATE", "READ", "UPDATE", "DELETE"]);
 
 const EditPermissionForm = ({
@@ -34,13 +41,13 @@ const EditPermissionForm = ({
 }: {
   permission: Permission | null;
 }) => {
-  const form = useForm({
+  const form = useForm<PermissionFormData>({
     defaultValues: {
       id: permission?.id,
       name: permission?.name ?? "",
       action: permission?.action ?? "READ",
       resource: permission?.resource ?? "",
-      path: permission?.path ?? [""], // Default to one empty path
+      path: permission?.path ?? [""],
     },
   });
 
@@ -49,9 +56,9 @@ const EditPermissionForm = ({
     name: "path" as never,
   });
 
-  async function onSubmit(values: any) {
+  const onSubmit: SubmitHandler<PermissionFormData> = async (values) => {
     try {
-      const filteredPaths = values.path.filter((p: string) => p.trim() !== "");
+      const filteredPaths = values.path.filter((p) => p.trim() !== "");
 
       if (values.id) {
         await updatePermission({
@@ -79,12 +86,11 @@ const EditPermissionForm = ({
       console.error("Error saving permission:", error);
       toast.error("Алдаа гарлаа: " + (error as Error).message);
     }
-  }
+  };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Permission Name */}
         <FormField
           control={form.control}
           name="name"
@@ -94,9 +100,6 @@ const EditPermissionForm = ({
               <FormControl>
                 <Input placeholder="user.manage" {...field} />
               </FormControl>
-              <FormDescription>
-                A unique name for this permission
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -122,9 +125,6 @@ const EditPermissionForm = ({
                   </SelectContent>
                 </Select>
               </FormControl>
-              <FormDescription>
-                The type of action this permission grants
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -139,9 +139,6 @@ const EditPermissionForm = ({
               <FormControl>
                 <Input placeholder="users" {...field} />
               </FormControl>
-              <FormDescription>
-                The resource this permission applies to
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -155,7 +152,7 @@ const EditPermissionForm = ({
               <div key={field.id} className="flex items-center gap-2">
                 <FormField
                   control={form.control}
-                  name={`path.${index}`}
+                  name={`path.${index}` as const}
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormControl>
@@ -186,9 +183,6 @@ const EditPermissionForm = ({
             <Plus className="h-4 w-4" />
             Add Path
           </Button>
-          <FormDescription>
-            Add all paths that should be protected by this permission
-          </FormDescription>
         </div>
 
         <div className="flex justify-end">
