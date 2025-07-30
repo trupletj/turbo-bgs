@@ -11,7 +11,6 @@ import {
 import { BookOpen, Bot, SquareTerminal, UserCog } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
-import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
