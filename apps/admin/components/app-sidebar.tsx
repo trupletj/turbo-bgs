@@ -5,10 +5,7 @@ import {
   IconCamera,
   IconFileAi,
   IconFileDescription,
-  IconHelp,
   IconInnerShadowTop,
-  IconSearch,
-  IconSettings,
 } from "@tabler/icons-react";
 
 import { BookOpen, Bot, SquareTerminal, UserCog } from "lucide-react";
