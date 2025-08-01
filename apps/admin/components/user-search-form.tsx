@@ -151,7 +151,7 @@ const UserSearchForm = () => {
             {selectedUser.first_name} {selectedUser.last_name}
           </h2>
           <p>РД: {selectedUser.register_number}</p>
-          <p>Албан тушаал ID: {selectedUser.job_position_id}</p>
+          <p>Албан тушаал: {selectedUser.nice_name}</p>
           <p>И-мэйл: {selectedUser.email}</p>
           <p>Гэрийн хаяг: {selectedUser.address}</p>
 
