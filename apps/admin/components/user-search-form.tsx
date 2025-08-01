@@ -132,7 +132,7 @@ const UserSearchForm = () => {
                         {user.first_name} {user.last_name}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {user.register_number} • {user.job_position_id}
+                        {user.register_number} • {user.nice_name}
                       </p>
                     </div>
                   </div>
