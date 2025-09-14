@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 8000",
+    "dev": "next dev --port 8080",
     "build": "next build",
-    "start": "next start --port 8000",
+    "start": "next start --port 8080",
     "lint": "next lint"
   },
   "dependencies": {
@@ -30,6 +30,8 @@
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@repo/database": "*",
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.57.4",
     "@tabler/icons-react": "^3.33.0",
     "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
