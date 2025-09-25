@@ -1,12 +1,12 @@
 'use client'
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { redirect, useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-
+import { createClient } from '@/utils/supabase/client'
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
@@ -31,10 +31,11 @@ const FormSchema = z.object({
 })
 
 export function VerifyOtpForm() {
+    const supabase = createClient()
     const router = useRouter()
     const searchParams = useSearchParams()
-    const register = searchParams.get('register')
-    const phone = searchParams.get('phone')
+    const register = searchParams.get('register') || ''
+    const phone = searchParams.get('phone') || ''
 
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
@@ -44,18 +45,13 @@ export function VerifyOtpForm() {
     })
 
     async function onSubmit(data: z.infer<typeof FormSchema>) {
-        const res = await signIn('credentials', {
-            redirect: false,
-            register_number: register,
-            phone,
-            otp: data.pin
-        })
-        if (res?.error) {
-            toast(JSON.stringify(res, null, 2))
+        const { data : resData, error } = await supabase.auth.verifyOtp({ phone, token: data.pin, type : "sms" });
+        if (error) {
+            toast(JSON.stringify(error, null, 2))
 
         } else {
-            toast(JSON.stringify(res, null, 2))
-            router.push('/employee')
+            toast(JSON.stringify(resData, null, 2))
+            redirect('/')
         }
     }
 

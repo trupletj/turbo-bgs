@@ -7,8 +7,8 @@ export default async function AuditLayout({
     children: React.ReactNode;
 }>) {
 
-    const session = await auth()
-    if (session?.user) { redirect("/employee") }
+    // const session = await auth()
+    // if (session?.user) { redirect("/employee") }
 
     return (
         <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">

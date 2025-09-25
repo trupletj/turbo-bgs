@@ -1,10 +1,11 @@
 'use client'
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
-import { matchUserInfo } from '@repo/actions'
+// import { signIn } from 'next-auth/react'
+// import { matchUserInfo } from '@repo/actions'
+import { verifyOtpFunc } from '@/actions/auth'
 import { redirect } from 'next/navigation'
 
-
+import {createClient} from '@/utils/supabase/client'
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -13,10 +14,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Image from 'next/image'
 
-export function RequestOtpForm({
+export  function RequestOtpForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+const supabase = createClient()
+  // const { error : otpError } = await supabase.auth.signInWithOtp({ phone: "99135213" });
   const [register, setReg] = useState('')
   const [phone, setPhone] = useState('')
   const [error, setError] = useState<string>()
@@ -24,15 +27,13 @@ export function RequestOtpForm({
   const onRequest = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(undefined)
-
-    const res = await matchUserInfo(register, phone)
-
-    if (res.type === 'error') {
-      setError(res.errorMsg)
-    }
-    if (res.type === 'ok') {
-      redirect(`/login/otp?phone=${phone}&register=${register}`)
-    }
+    const { data, error } = await supabase.auth.signInWithOtp({
+          phone , options : {
+            shouldCreateUser : true , data : { register_number : register}
+          }
+        });
+    if(error){ setError(JSON.stringify(error)); return }
+    redirect(`/login/otp?phone=${phone}&register=${register}`)
   }
 
 
@@ -89,7 +90,7 @@ export function RequestOtpForm({
           By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
           and <a href="#">Privacy Policy</a>.
         </div>
-      </div>
+      </div>  
     </>
   )
 }
